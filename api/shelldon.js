@@ -10,7 +10,7 @@ const SHOPIFY_API_TOKEN = process.env.SHOPIFY_API_TOKEN;
 export default async function handler(req, res) {
   const message = req.query.message || "";
 
-  // Log incoming request and token presence
+  // --- DEBUG LOGS ---
   console.log("Incoming message:", message);
   console.log("SHOPIFY_API_TOKEN exists:", !!SHOPIFY_API_TOKEN);
 
@@ -33,13 +33,13 @@ export default async function handler(req, res) {
         );
 
         console.log("Shopify response status:", shopifyRes.status);
+        const rawText = await shopifyRes.text();
+        console.log("Shopify raw response:", rawText);
 
         if (!shopifyRes.ok) {
-          const errText = await shopifyRes.text();
-          console.error("Shopify API error:", errText);
           reply = `Shopify API error: ${shopifyRes.status}`;
         } else {
-          const data = await shopifyRes.json();
+          const data = JSON.parse(rawText);
           console.log("Number of products fetched:", data.products?.length || 0);
 
           if (data.products && data.products.length > 0) {
