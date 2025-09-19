@@ -2,7 +2,7 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // Use environment variables for security
-const SHOPIFY_STORE = process.env.SHOPIFY_STORE || "51294e-8f.myshopify.com";
+constq SHOPIFY_STORE = process.env.SHOPIFY_STORE || "51294e-8f.myshopify.com";
 const SHOPIFY_API_TOKEN = process.env.SHOPIFY_API_TOKEN; // Your shpat_ token
 
 export default async function handler(req, res) {
