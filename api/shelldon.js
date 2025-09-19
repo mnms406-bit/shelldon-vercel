@@ -1,14 +1,19 @@
-// Vercel-compatible fetch impor fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+// Vercel-compatible fetch import
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-// Use environment variables for security
-constq SHOPIFY_STORE = process.env.SHOPIFY_STORE || "51294e-8f.myshopify.com";
-const SHOPIFY_API_TOKEN = process.env.SHOPIFY_API_TOKEN; // Your shpat_ token
+// Hardcoded Shopify store
+const SHOPIFY_STORE = "51294e-8f.myshopify.com";
+
+// Token as environment variable
+const SHOPIFY_API_TOKEN = process.env.SHOPIFY_API_TOKEN;
 
 export default async function handler(req, res) {
   const message = req.query.message || "";
-  let reply = "Sorry, I don't understand that.";
 
-  // If user asks about products
+  // Original greeting restored
+  let reply = "Hi! I’m Shelldon, your virtual assistant. I'm here to help you navigate the site, answer questions, and make your experience easier. Feel free to ask me anything!";
+
+  // Respond to "product" queries
   if (/product/i.test(message)) {
     try {
       const shopifyRes = await fetch(
@@ -22,9 +27,8 @@ export default async function handler(req, res) {
       );
 
       if (!shopifyRes.ok) {
-        // Shopify returned an error
         const errText = await shopifyRes.text();
-        console.error("Shopify error:", errText);
+        console.error("Shopify API error:", errText);
         reply = `Shopify API error: ${shopifyRes.status}`;
       } else {
         const data = await shopifyRes.json();
@@ -36,10 +40,10 @@ export default async function handler(req, res) {
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      reply = "Error fetching products from Shopify.";
+      // fallback reply remains
     }
   }
 
-  // Respond with JSON
+  // Return JSON response
   res.status(200).json({ reply });
 }
