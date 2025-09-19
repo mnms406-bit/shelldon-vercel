@@ -1,5 +1,4 @@
-// Vercel-compatible fetch import
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+// Vercel-compatible fetch impor fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // Use environment variables for security
 constq SHOPIFY_STORE = process.env.SHOPIFY_STORE || "51294e-8f.myshopify.com";
