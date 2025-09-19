@@ -1,44 +1,38 @@
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  const { message } = req.query;
+  try {
+    // Base domain from your env var
+    const shop = process.env.SHOPIFY_STORE_DOMAIN; 
 
-  const SHOPIFY_TOKEN = process.env.SHOPIFY_API_TOKEN;
-  const SHOPIFY_STORE = process.env.SHOPIFY_STORE_DOMAIN;
+    // Try main pages sitemap (always exists)
+    let sitemapUrl = `https://${shop}/sitemap_pages.xml`;
 
-  let reply =
-    "Hi! I’m Shelldon, your virtual assistant. I'm here to help you navigate the site, answer questions, and make your experience easier. Feel free to ask me anything!";
-
-  if (message?.toLowerCase().includes("product")) {
-    if (!SHOPIFY_TOKEN || !SHOPIFY_STORE) {
-      return res.status(500).json({ reply: "Error: Missing Shopify credentials." });
+    let response = await fetch(sitemapUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch sitemap: ${response.status}`);
     }
 
-    try {
-      const response = await fetch(
-        `https://${SHOPIFY_STORE}/admin/api/2025-01/products.json?limit=1`,
-        {
-          headers: {
-            "X-Shopify-Access-Token": SHOPIFY_TOKEN,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    let xml = await response.text();
 
+    // Quick check: if it’s empty or doesn’t include <url>, fallback
+    if (!xml.includes("<url>")) {
+      // Try the product sitemap as backup
+      sitemapUrl = `https://${shop}/sitemap_products_1.xml`;
+      response = await fetch(sitemapUrl);
       if (!response.ok) {
-        return res.status(500).json({ reply: "Error fetching products from Shopify." });
+        throw new Error(`Fallback failed: ${response.status}`);
       }
-
-      const data = await response.json();
-      if (data.products && data.products.length > 0) {
-        reply = `Our first product is: ${data.products[0].title}`;
-      } else {
-        reply = "No products found in Shopify store.";
-      }
-    } catch (error) {
-      return res.status(500).json({ reply: "Error fetching products from Shopify." });
+      xml = await response.text();
     }
-  }
 
-  res.status(200).json({ reply });
+    // At this point xml should have sitemap data
+    res.status(200).json({
+      reply: "Fetched products from Shopify successfully!",
+      sitemapSample: xml.substring(0, 500) // show first 500 chars
+    });
+  } catch (error) {
+    console.error("Error fetching products from Shopify:", error);
+    res.status(500).json({ reply: "Error fetching products from Shopify." });
+  }
 }
