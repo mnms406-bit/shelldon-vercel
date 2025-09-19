@@ -3,22 +3,36 @@ import fetch from "node-fetch";
 export default async function handler(req, res) {
   const { message } = req.query;
 
-  // ✅ Debug log: check if env variable exists
-  console.log("DEBUG - SHOPIFY_STORE_DOMAIN:", process.env.SHOPIFY_STORE_DOMAIN);
+  // ✅ Debug: Check environment variables
+  const SHOPIFY_TOKEN = process.env.SHOPIFY_API_TOKEN;
+  const SHOPIFY_STORE = process.env.SHOPIFY_STORE_DOMAIN;
+
   console.log(
-    "DEBUG - SHOPIFY_ADMIN_API_TOKEN length:",
-    process.env.SHOPIFY_ADMIN_API_TOKEN
-      ? process.env.SHOPIFY_ADMIN_API_TOKEN.length
-      : "MISSING"
+    "DEBUG - SHOPIFY_API_TOKEN present:",
+    SHOPIFY_TOKEN ? "YES" : "MISSING"
+  );
+  console.log(
+    "DEBUG - SHOPIFY_STORE_DOMAIN present:",
+    SHOPIFY_STORE ? "YES" : "MISSING"
   );
 
-  if (message.toLowerCase().includes("product")) {
+  // Fallback greeting
+  let reply =
+    "Hi! I’m Shelldon, your virtual assistant. I'm here to help you navigate the site, answer questions, and make your experience easier. Feel free to ask me anything!";
+
+  // Respond to "product" queries
+  if (message?.toLowerCase().includes("product")) {
+    if (!SHOPIFY_TOKEN || !SHOPIFY_STORE) {
+      console.error("❌ Missing environment variable for Shopify API.");
+      return res.status(500).json({ reply: "Error: Missing Shopify credentials." });
+    }
+
     try {
       const response = await fetch(
-        `https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2025-01/products.json?limit=1`,
+        `https://${SHOPIFY_STORE}/admin/api/2025-01/products.json?limit=1`,
         {
           headers: {
-            "X-Shopify-Access-Token": process.env.SHOPIFY_ADMIN_API_TOKEN,
+            "X-Shopify-Access-Token": SHOPIFY_TOKEN,
             "Content-Type": "application/json",
           },
         }
@@ -31,14 +45,16 @@ export default async function handler(req, res) {
       }
 
       const data = await response.json();
-      return res.status(200).json({ reply: JSON.stringify(data) });
+      if (data.products && data.products.length > 0) {
+        reply = `Our first product is: ${data.products[0].title}`;
+      } else {
+        reply = "No products found in Shopify store.";
+      }
     } catch (error) {
       console.error("Fetch error:", error);
       return res.status(500).json({ reply: "Error fetching products from Shopify." });
     }
   }
 
-  res.status(200).json({
-    reply: "Hi! I’m Shelldon, your virtual assistant. Ask me about products!",
-  });
+  res.status(200).json({ reply });
 }
