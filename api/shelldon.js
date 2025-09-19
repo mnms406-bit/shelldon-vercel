@@ -1,29 +1,16 @@
-import fetch from "node-fetch";
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 export default async function handler(req, res) {
   const { message } = req.query;
 
-  // ✅ Debug: Check environment variables
   const SHOPIFY_TOKEN = process.env.SHOPIFY_API_TOKEN;
   const SHOPIFY_STORE = process.env.SHOPIFY_STORE_DOMAIN;
 
-  console.log(
-    "DEBUG - SHOPIFY_API_TOKEN present:",
-    SHOPIFY_TOKEN ? "YES" : "MISSING"
-  );
-  console.log(
-    "DEBUG - SHOPIFY_STORE_DOMAIN present:",
-    SHOPIFY_STORE ? "YES" : "MISSING"
-  );
-
-  // Fallback greeting
   let reply =
     "Hi! I’m Shelldon, your virtual assistant. I'm here to help you navigate the site, answer questions, and make your experience easier. Feel free to ask me anything!";
 
-  // Respond to "product" queries
   if (message?.toLowerCase().includes("product")) {
     if (!SHOPIFY_TOKEN || !SHOPIFY_STORE) {
-      console.error("❌ Missing environment variable for Shopify API.");
       return res.status(500).json({ reply: "Error: Missing Shopify credentials." });
     }
 
@@ -39,8 +26,6 @@ export default async function handler(req, res) {
       );
 
       if (!response.ok) {
-        const text = await response.text();
-        console.error("Shopify API error:", text);
         return res.status(500).json({ reply: "Error fetching products from Shopify." });
       }
 
@@ -51,7 +36,6 @@ export default async function handler(req, res) {
         reply = "No products found in Shopify store.";
       }
     } catch (error) {
-      console.error("Fetch error:", error);
       return res.status(500).json({ reply: "Error fetching products from Shopify." });
     }
   }
