@@ -1,45 +1,59 @@
-// Vercel-compatible native fetch (Node.js 18+ supports fetch natively)
-
-// Shopify store (public, can stay in code)
-const SHOPIFY_STORE = "51294e-8f.myshopify.com";
-
-// Tokens as environment variables
-const SHOPIFY_API_TOKEN = process.env.SHOPIFY_API_TOKEN; // Admin API token
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // OpenAI API key
-
+// Vercel-compatible serverless function
 export default async function handler(req, res) {
   const message = req.query.message || "";
 
-  // Default fallback message
-  let reply = "Hi! I’m Shelldon, your virtual assistant. I'm here to help you navigate the site, answer questions, and make your experience easier. Feel free to ask me anything!";
+  // Default greeting
+  let reply = "Hi! I’m Shelldon, your virtual assistant. I'm here to help you navigate the site, answer questions, and make your experience easier.";
 
+  // OpenAI API
   try {
-    // Send request to OpenAI
-    const openAIRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-3.5-turbo",
         messages: [{ role: "user", content: message }],
-        max_tokens: 300
+        temperature: 0.7
       })
     });
 
-    const openAIData = await openAIRes.json();
-
-    if (openAIData?.choices && openAIData.choices.length > 0) {
-      reply = openAIData.choices[0].message.content.trim();
-    } else {
-      reply = "Shelldon couldn’t get a response right now.";
+    if(!openaiRes.ok) {
+      const errorText = await openaiRes.text();
+      console.error("OpenAI API error:", errorText);
+      return res.status(500).json({ reply: "Shelldon crashed: OpenAI API error." });
     }
 
-  } catch (err) {
-    console.error("OpenAI API error:", err);
-    reply = "Shelldon couldn’t get a response right now.";
+    const data = await openaiRes.json();
+    if(data.choices && data.choices.length > 0) {
+      reply = data.choices[0].message.content;
+    }
+  } catch(err) {
+    console.error("Fetch error:", err);
+    return res.status(500).json({ reply: "Shelldon couldn’t get a response right now." });
   }
+
+  // Optional Shopify fetch (comment out if only OpenAI)
+  /*
+  try {
+    const shopifyRes = await fetch(`https://${process.env.SHOPIFY_STORE}/admin/api/2025-01/products.json?limit=5`, {
+      headers: {
+        "X-Shopify-Access-Token": process.env.SHOPIFY_API_TOKEN,
+        "Content-Type": "application/json"
+      }
+    });
+    if(shopifyRes.ok) {
+      const shopifyData = await shopifyRes.json();
+      if(shopifyData.products && shopifyData.products.length > 0) {
+        reply += `\nFirst product: ${shopifyData.products[0].title}`;
+      }
+    }
+  } catch(err) {
+    console.error("Shopify fetch error:", err);
+  }
+  */
 
   res.status(200).json({ reply });
 }
