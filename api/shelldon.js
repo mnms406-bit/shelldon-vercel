@@ -1,134 +1,77 @@
-// Shelldon Knowledge JS - Modular version
+// Vercel-compatible fetch import
+// Node 18+ has native fetch, so no need for node-fetch
 
-(function() {
-  // Elements
-  const messagesContainer = document.getElementById('shelldon-chat-messages');
-  const inputField = document.getElementById('shelldon-chat-input');
+// Hardcoded Shopify store
+const SHOPIFY_STORE = "51294e-8f.myshopify.com";
 
-  // Shopify setup
-  const shopDomain = 'yourstore.myshopify.com';
-  const storefrontToken = 'your-storefront-access-token';
+// Tokens as environment variables
+const SHOPIFY_API_TOKEN = process.env.SHOPIFY_API_TOKEN;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-  // OpenAI setup
-  const openAiKey = 'YOUR_OPENAI_API_KEY'; // Replace with your key or environment variable reference
+export default async function handler(req, res) {
+    const userMessage = req.query.message || "";
 
-  // Typing effect
-  function typeMessage(text, from='shelldon', speed=50) {
-    let index = 0;
-    const msg = document.createElement('div');
-    msg.style.marginBottom = '8px';
-    msg.style.padding = '6px';
-    msg.style.borderRadius = '6px';
-    msg.style.maxWidth = '80%';
-    msg.style.wordWrap = 'break-word';
-    msg.style.display = 'inline-block';
-    msg.style.whiteSpace = 'pre-wrap';
-    if(from === 'shelldon') {
-        msg.style.background = '#f1f1f1';
-        msg.style.alignSelf = 'flex-start';
-    } else {
-        msg.style.background = '#4CAF50';
-        msg.style.color = '#fff';
-        msg.style.alignSelf = 'flex-end';
+    // Default greeting
+    let reply = "Hi! I’m Shelldon, your virtual assistant. I'm here to help you navigate the site, answer questions, and make your experience easier. Feel free to ask me anything!";
+
+    // Respond to Shopify product queries
+    if (/product/i.test(userMessage)) {
+        try {
+            const shopifyRes = await fetch(
+                `https://${SHOPIFY_STORE}/admin/api/2025-01/products.json?limit=5`,
+                {
+                    headers: {
+                        "X-Shopify-Access-Token": SHOPIFY_API_TOKEN,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            if (!shopifyRes.ok) {
+                const errText = await shopifyRes.text();
+                console.error("Shopify API error:", errText);
+                reply = `Error fetching products from Shopify.`;
+            } else {
+                const data = await shopifyRes.json();
+                if (data.products && data.products.length > 0) {
+                    reply = "Here are the first 5 products:\n" + 
+                        data.products.map(p => p.title).join("\n");
+                } else {
+                    reply = "No products found in Shopify store.";
+                }
+            }
+        } catch (err) {
+            console.error("Fetch error:", err);
+            reply = "Error fetching products from Shopify.";
+        }
+    } 
+    // Otherwise, use OpenAI for general queries
+    else if (userMessage.trim().length > 0) {
+        try {
+            const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${OPENAI_API_KEY}`,
+                },
+                body: JSON.stringify({
+                    model: "gpt-4",
+                    messages: [{ role: "user", content: userMessage }],
+                    max_tokens: 150,
+                }),
+            });
+
+            const data = await openaiRes.json();
+            if (data.choices && data.choices[0].message) {
+                reply = data.choices[0].message.content;
+            } else {
+                reply = "Shelldon couldn't generate a response.";
+            }
+        } catch (err) {
+            console.error("OpenAI API error:", err);
+            reply = `Shelldon crashed: OpenAI API error.`;
+        }
     }
-    messagesContainer.appendChild(msg);
 
-    const interval = setInterval(() => {
-        msg.textContent += text[index];
-        index++;
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        if(index >= text.length) clearInterval(interval);
-    }, speed);
-  }
-
-  // Fetch Shopify content
-  async function fetchShopifyContent() {
-    const queries = {
-      products: `{ products(first: 5) { edges { node { title description tags } } } }`,
-      collections: `{ collections(first: 5) { edges { node { title description } } } }`,
-      pages: `{ pages(first: 5) { edges { node { title body } } } }`
-    };
-
-    const fetchGraphQL = async (query) => {
-      const res = await fetch(`https://${shopDomain}/api/2025-01/graphql.json`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Storefront-Access-Token': storefrontToken,
-        },
-        body: JSON.stringify({ query })
-      });
-      const data = await res.json();
-      return data.data;
-    };
-
-    const [productsData, collectionsData, pagesData] = await Promise.all([
-      fetchGraphQL(queries.products),
-      fetchGraphQL(queries.collections),
-      fetchGraphQL(queries.pages)
-    ]);
-
-    const siteContent = [];
-
-    productsData.products.edges.forEach(edge => {
-        siteContent.push({ type: 'product', title: edge.node.title, description: edge.node.description });
-    });
-    collectionsData.collections.edges.forEach(edge => {
-        siteContent.push({ type: 'collection', title: edge.node.title, description: edge.node.description });
-    });
-    pagesData.pages.edges.forEach(edge => {
-        siteContent.push({ type: 'page', title: edge.node.title, description: edge.node.body });
-    });
-
-    return siteContent;
-  }
-
-  // Get Shelldon response
-  async function getShelldonResponse(userMessage) {
-    try {
-      const siteContent = await fetchShopifyContent();
-      const lowerMsg = userMessage.toLowerCase();
-
-      // Shopify match
-      for (const item of siteContent) {
-          if ((item.title && item.title.toLowerCase().includes(lowerMsg)) ||
-              (item.description && item.description.toLowerCase().includes(lowerMsg))) {
-              return `${item.type.toUpperCase()}: ${item.title}\n${item.description}`;
-          }
-      }
-
-      // OpenAI fallback
-      const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openAiKey}`
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: userMessage }],
-          max_tokens: 150
-        })
-      });
-
-      const aiData = await aiRes.json();
-      return aiData.choices && aiData.choices[0].message.content ? aiData.choices[0].message.content : "Sorry, I couldn't generate a response.";
-    } catch(err){
-      console.error("Shelldon error:", err);
-      return "Shelldon crashed: there was an error.";
-    }
-  }
-
-  // Handle input
-  inputField.addEventListener('keydown', async function(event) {
-      if(event.key === 'Enter' && inputField.value.trim() !== '') {
-          const userMessage = inputField.value.trim();
-          typeMessage(userMessage, 'user');
-          inputField.value = '';
-
-          const response = await getShelldonResponse(userMessage);
-          setTimeout(() => typeMessage(response), 500);
-      }
-  });
-
-})();
+    res.status(200).json({ reply });
+}
