@@ -2,20 +2,14 @@
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
-// Hardcoded Shopify store
 const SHOPIFY_STORE = "51294e-8f.myshopify.com";
-
-// Token as environment variable
 const SHOPIFY_API_TOKEN = process.env.SHOPIFY_API_TOKEN;
 
 export default async function handler(req, res) {
   const message = req.query.message || "";
-
-  // Default Shelldon greeting
   let reply =
     "Hi! I’m Shelldon, your virtual assistant. I'm here to help you navigate the site, answer questions, and make your experience easier. Feel free to ask me anything!";
 
-  // Respond to "product" queries
   if (/product/i.test(message)) {
     try {
       const shopifyRes = await fetch(
@@ -28,12 +22,12 @@ export default async function handler(req, res) {
         }
       );
 
+      const text = await shopifyRes.text(); // Get full response text
+
       if (!shopifyRes.ok) {
-        const errText = await shopifyRes.text();
-        console.error("Shopify API error:", errText);
-        reply = "Error fetching products from Shopify.";
+        reply = `Shopify API error ${shopifyRes.status}: ${text}`;
       } else {
-        const data = await shopifyRes.json();
+        const data = JSON.parse(text);
         if (data.products && data.products.length > 0) {
           reply = `Our first product is: ${data.products[0].title}`;
         } else {
@@ -41,11 +35,9 @@ export default async function handler(req, res) {
         }
       }
     } catch (err) {
-      console.error("Fetch error:", err);
-      reply = "There was a problem contacting Shopify.";
+      reply = `Fetch error: ${err.message}`;
     }
   }
 
-  // Return JSON response
   res.status(200).json({ reply });
 }
