@@ -1,10 +1,8 @@
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
   try {
     const { question } = req.query;
 
-    // 1. Handle Shopify product requests
+    // Shopify response
     if (question && question.toLowerCase().includes("product")) {
       const shopifyResp = await fetch(
         `https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2023-10/products.json?limit=5`,
@@ -17,7 +15,8 @@ export default async function handler(req, res) {
       );
 
       if (!shopifyResp.ok) {
-        throw new Error(`Shopify API error: ${shopifyResp.statusText}`);
+        const errText = await shopifyResp.text();
+        throw new Error(`Shopify API error: ${shopifyResp.status} - ${errText}`);
       }
 
       const shopifyData = await shopifyResp.json();
@@ -28,7 +27,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2. Otherwise, send to OpenAI
+    // OpenAI response
     const aiResp = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -36,12 +35,12 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini", // fast + smart + cost efficient
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
             content:
-              "You are Shelldon, a friendly helpful assistant on a Shopify store. Keep answers short and helpful, guide users through products, orders, or general support.",
+              "You are Shelldon, a friendly assistant for a Shopify store. Answer helpfully but briefly.",
           },
           { role: "user", content: question || "Hello Shelldon!" },
         ],
@@ -49,7 +48,8 @@ export default async function handler(req, res) {
     });
 
     if (!aiResp.ok) {
-      throw new Error(`OpenAI API error: ${aiResp.statusText}`);
+      const errText = await aiResp.text();
+      throw new Error(`OpenAI API error: ${aiResp.status} - ${errText}`);
     }
 
     const aiData = await aiResp.json();
@@ -59,7 +59,9 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ reply });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ reply: "There was a problem contacting Shelldon." });
+    console.error("Shelldon error:", err);
+    return res
+      .status(500)
+      .json({ reply: `Shelldon crashed: ${err.message}` });
   }
 }
