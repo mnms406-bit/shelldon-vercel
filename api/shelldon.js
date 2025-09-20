@@ -1,48 +1,65 @@
-// Vercel-compatible fetch (native Node.js fetch, no node-fetch needed)
-
-// Hardcoded Shopify store
-const SHOPIFY_STORE = "51294e-8f.myshopify.com";
-
-// Token as environment variable
-const SHOPIFY_API_TOKEN = process.env.SHOPIFY_API_TOKEN;
+import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  const message = req.query.message || "";
-  
-  // Default greeting
-  let reply = "Hi! I’m Shelldon, your virtual assistant. I'm here to help you navigate the site, answer questions, and make your experience easier. Feel free to ask me anything!";
+  try {
+    const { question } = req.query;
 
-  // Respond to "product" queries
-  if (/product/i.test(message)) {
-    try {
-      const shopifyRes = await fetch(
-        `https://${SHOPIFY_STORE}/admin/api/2024-10/products.json?limit=5`,
+    // 1. Handle Shopify product requests
+    if (question && question.toLowerCase().includes("product")) {
+      const shopifyResp = await fetch(
+        `https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2023-10/products.json?limit=5`,
         {
           headers: {
-            "X-Shopify-Access-Token": SHOPIFY_API_TOKEN,
+            "X-Shopify-Access-Token": process.env.SHOPIFY_ADMIN_API_KEY,
             "Content-Type": "application/json",
           },
         }
       );
 
-      if (!shopifyRes.ok) {
-        const errText = await shopifyRes.text();
-        console.error("Shopify API error:", errText);
-        reply = `Error fetching products from Shopify.`;
-      } else {
-        const data = await shopifyRes.json();
-        if (data.products && data.products.length > 0) {
-          reply = data.products.map(p => p.title).join("\n");
-        } else {
-          reply = "No products found in Shopify store.";
-        }
+      if (!shopifyResp.ok) {
+        throw new Error(`Shopify API error: ${shopifyResp.statusText}`);
       }
-    } catch (err) {
-      console.error("Fetch error:", err);
-      reply = "Error fetching products from Shopify.";
-    }
-  }
 
-  // Return JSON response
-  res.status(200).json({ reply });
+      const shopifyData = await shopifyResp.json();
+      const productNames = shopifyData.products.map((p) => p.title).join(", ");
+
+      return res.status(200).json({
+        reply: `Here are some products from our store: ${productNames}`,
+      });
+    }
+
+    // 2. Otherwise, send to OpenAI
+    const aiResp = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini", // fast + smart + cost efficient
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are Shelldon, a friendly helpful assistant on a Shopify store. Keep answers short and helpful, guide users through products, orders, or general support.",
+          },
+          { role: "user", content: question || "Hello Shelldon!" },
+        ],
+      }),
+    });
+
+    if (!aiResp.ok) {
+      throw new Error(`OpenAI API error: ${aiResp.statusText}`);
+    }
+
+    const aiData = await aiResp.json();
+    const reply =
+      aiData.choices?.[0]?.message?.content ||
+      "Sorry, I’m having trouble thinking right now.";
+
+    return res.status(200).json({ reply });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ reply: "There was a problem contacting Shelldon." });
+  }
 }
