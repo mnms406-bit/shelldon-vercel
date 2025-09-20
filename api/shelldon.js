@@ -11,7 +11,7 @@ const SHOPIFY_API_TOKEN = process.env.SHOPIFY_API_TOKEN;
 export default async function handler(req, res) {
   const message = req.query.message || "";
 
-  // Fallback reply (original greeting)
+  // Default Shelldon greeting
   let reply =
     "Hi! I’m Shelldon, your virtual assistant. I'm here to help you navigate the site, answer questions, and make your experience easier. Feel free to ask me anything!";
 
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   if (/product/i.test(message)) {
     try {
       const shopifyRes = await fetch(
-        `https://${SHOPIFY_STORE}/admin/api/2025-01/products.json?limit=5`,
+        `https://${SHOPIFY_STORE}/admin/api/2024-10/products.json?limit=5`,
         {
           headers: {
             "X-Shopify-Access-Token": SHOPIFY_API_TOKEN,
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      // Leave reply as greeting or error message
+      reply = "There was a problem contacting Shopify.";
     }
   }
 
