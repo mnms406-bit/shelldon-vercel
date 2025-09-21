@@ -1,96 +1,47 @@
-// Shelldon Vercel serverless function
-// Uses built-in fetch, no node-fetch needed
-
-const SHOPIFY_STORE = "51294e-8f.myshopify.com"; // Your Shopify store
-const SHOPIFY_TOKEN = process.env.SHOPIFY_API_TOKEN; // Storefront Access Token
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // OpenAI API key
+// api/shelldon.js
 
 export default async function handler(req, res) {
-  const userMessage = req.query.message || "";
-
-  // Fetch Shopify site content
-  async function fetchShopifyContent() {
-    const queries = {
-      products: `{ products(first: 50) { edges { node { title description tags } } } }`,
-      collections: `{ collections(first: 20) { edges { node { title description } } } }`,
-      pages: `{ pages(first: 20) { edges { node { title body } } } }`
-    };
-
-    const fetchGraphQL = async (query) => {
-      const response = await fetch(`https://${SHOPIFY_STORE}/api/2023-10/graphql.json`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token": SHOPIFY_TOKEN
-        },
-        body: JSON.stringify({ query })
-      });
-      if (!response.ok) throw new Error(`Shopify fetch failed: ${response.status}`);
-      const data = await response.json();
-      return data.data;
-    };
-
-    const [productsData, collectionsData, pagesData] = await Promise.all([
-      fetchGraphQL(queries.products),
-      fetchGraphQL(queries.collections),
-      fetchGraphQL(queries.pages)
-    ]);
-
-    const content = [];
-
-    productsData.products.edges.forEach(edge => {
-      content.push(`[PRODUCT] ${edge.node.title}: ${edge.node.description}`);
-    });
-    collectionsData.collections.edges.forEach(edge => {
-      content.push(`[COLLECTION] ${edge.node.title}: ${edge.node.description}`);
-    });
-    pagesData.pages.edges.forEach(edge => {
-      content.push(`[PAGE] ${edge.node.title}: ${edge.node.body}`);
-    });
-
-    return content.join("\n");
-  }
-
   try {
-    const siteContent = await fetchShopifyContent();
+    // Only GET or POST requests with 'message' param
+    const userMessage = req.query.message || (req.body && req.body.message);
+    if (!userMessage) {
+      return res.status(400).json({ reply: "No message provided." });
+    }
 
-    // Create OpenAI prompt
-    const prompt = `
-You are Shelldon, the virtual shopping assistant for ${SHOPIFY_STORE}.
-Use the following site content to answer the user's question accurately and concisely:
+    // OpenAI API call
+    const OPENAI_KEY = process.env.OPENAI_API_KEY; // Make sure this is set in Vercel
+    if (!OPENAI_KEY) {
+      return res.status(500).json({ reply: "OpenAI API key not configured." });
+    }
 
-${siteContent}
-
-User question: ${userMessage}
-Answer:
-`;
-
-    // Call OpenAI API
-    const openaiRes = await fetch("https://api.openai.com/v1/completions", {
+    const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
+        "Authorization": `Bearer ${OPENAI_KEY}`,
       },
       body: JSON.stringify({
-        model: "text-davinci-003",
-        prompt: prompt,
-        max_tokens: 200,
-        temperature: 0.7
-      })
+        model: "gpt-4",
+        messages: [
+          { role: "system", content: "You are Shelldon, a helpful assistant for the Shopify store 51294e-8f.myshopify.com." },
+          { role: "user", content: userMessage }
+        ],
+        temperature: 0.7,
+        max_tokens: 400
+      }),
     });
 
-    if (!openaiRes.ok) {
-      const errText = await openaiRes.text();
-      throw new Error(`OpenAI API error: ${openaiRes.status} - ${errText}`);
+    const data = await openAiResponse.json();
+
+    if (!data.choices || !data.choices[0].message) {
+      return res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
     }
 
-    const data = await openaiRes.json();
-    const reply = data.choices[0].text.trim();
+    const replyText = data.choices[0].message.content;
+    return res.status(200).json({ reply: replyText });
 
-    res.status(200).json({ reply });
   } catch (err) {
-    console.error(err);
-    res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
+    console.error("Shelldon API error:", err);
+    return res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
   }
 }
