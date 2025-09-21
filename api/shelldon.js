@@ -11,21 +11,45 @@ export default async function handler(req, res) {
     // Hardcoded Shopify domain
     const shopDomain = "51294e-8f.myshopify.com";
 
-    // Fetch sample products from Shopify
-    const shopifyResponse = await fetch(`https://${shopDomain}/products.json?limit=5`);
-    const shopifyData = await shopifyResponse.json();
-    const productList = shopifyData.products
-      .map((p, i) => `${i + 1}. ${p.title}`)
-      .join("\n");
+    // Storefront API token (keep in Vercel env)
+    const storefrontToken = process.env.SHOPIFY_STOREFRONT_API_KEY;
 
-    // Send to OpenAI
+    // GraphQL query for first 5 products
+    const query = `
+      {
+        products(first: 5) {
+          edges {
+            node {
+              title
+              description
+            }
+          }
+        }
+      }
+    `;
+
+    const shopifyResponse = await fetch(`https://${shopDomain}/api/2025-01/graphql.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": storefrontToken,
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    const shopifyData = await shopifyResponse.json();
+
+    const products = shopifyData?.data?.products?.edges || [];
+    const productList = products.map((p, i) => `${i + 1}. ${p.node.title}`).join("\n");
+
+    // Pass context + user query to OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `You are Shelldon, a helpful shopping assistant for ${shopDomain}. 
-          When a user asks a question, use this product list if relevant:\n${productList}`,
+          content: `You are Shelldon, a helpful shopping assistant for ${shopDomain}.
+          Use these products if relevant:\n${productList}`,
         },
         { role: "user", content: userMessage },
       ],
