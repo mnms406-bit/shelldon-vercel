@@ -1,70 +1,96 @@
+// Shelldon Vercel serverless function
+// Uses built-in fetch, no node-fetch needed
+
+const SHOPIFY_STORE = "51294e-8f.myshopify.com"; // Your Shopify store
+const SHOPIFY_TOKEN = process.env.SHOPIFY_API_TOKEN; // Storefront Access Token
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // OpenAI API key
+
 export default async function handler(req, res) {
-  try {
-    const { message } = req.query;
+  const userMessage = req.query.message || "";
 
-    // Use the stable 2023-10 API version
-    const SHOPIFY_API_VERSION = "2023-10";
+  // Fetch Shopify site content
+  async function fetchShopifyContent() {
+    const queries = {
+      products: `{ products(first: 50) { edges { node { title description tags } } } }`,
+      collections: `{ collections(first: 20) { edges { node { title description } } } }`,
+      pages: `{ pages(first: 20) { edges { node { title body } } } }`
+    };
 
-    // GraphQL query to fetch products (you can change this later)
-    const query = `
-      {
-        products(first: 3) {
-          edges {
-            node {
-              title
-              handle
-              onlineStoreUrl
-            }
-          }
-        }
-      }
-    `;
-
-    // Fetch from Shopify
-    const shopifyRes = await fetch(
-      `https://${process.env.SHOPIFY_STORE_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`,
-      {
+    const fetchGraphQL = async (query) => {
+      const response = await fetch(`https://${SHOPIFY_STORE}/api/2023-10/graphql.json`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token": process.env.SHOPIFY_STOREFRONT_API_KEY,
+          "X-Shopify-Storefront-Access-Token": SHOPIFY_TOKEN
         },
-        body: JSON.stringify({ query }),
-      }
-    );
+        body: JSON.stringify({ query })
+      });
+      if (!response.ok) throw new Error(`Shopify fetch failed: ${response.status}`);
+      const data = await response.json();
+      return data.data;
+    };
 
-    const shopifyData = await shopifyRes.json();
+    const [productsData, collectionsData, pagesData] = await Promise.all([
+      fetchGraphQL(queries.products),
+      fetchGraphQL(queries.collections),
+      fetchGraphQL(queries.pages)
+    ]);
 
-    // Pass both the user message + store data into OpenAI
-    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const content = [];
+
+    productsData.products.edges.forEach(edge => {
+      content.push(`[PRODUCT] ${edge.node.title}: ${edge.node.description}`);
+    });
+    collectionsData.collections.edges.forEach(edge => {
+      content.push(`[COLLECTION] ${edge.node.title}: ${edge.node.description}`);
+    });
+    pagesData.pages.edges.forEach(edge => {
+      content.push(`[PAGE] ${edge.node.title}: ${edge.node.body}`);
+    });
+
+    return content.join("\n");
+  }
+
+  try {
+    const siteContent = await fetchShopifyContent();
+
+    // Create OpenAI prompt
+    const prompt = `
+You are Shelldon, the virtual shopping assistant for ${SHOPIFY_STORE}.
+Use the following site content to answer the user's question accurately and concisely:
+
+${siteContent}
+
+User question: ${userMessage}
+Answer:
+`;
+
+    // Call OpenAI API
+    const openaiRes = await fetch("https://api.openai.com/v1/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are Shelldon, a friendly shopping assistant for Enajif.com.",
-          },
-          {
-            role: "user",
-            content: `${message}\n\nShopify data: ${JSON.stringify(shopifyData)}`,
-          },
-        ],
-      }),
+        model: "text-davinci-003",
+        prompt: prompt,
+        max_tokens: 200,
+        temperature: 0.7
+      })
     });
 
-    const aiData = await aiRes.json();
-    const reply =
-      aiData.choices?.[0]?.message?.content ||
-      "Sorry, I couldn’t get a response right now.";
+    if (!openaiRes.ok) {
+      const errText = await openaiRes.text();
+      throw new Error(`OpenAI API error: ${openaiRes.status} - ${errText}`);
+    }
+
+    const data = await openaiRes.json();
+    const reply = data.choices[0].text.trim();
 
     res.status(200).json({ reply });
-  } catch (error) {
-    console.error("Error in Shelldon handler:", error);
-    res.status(500).json({ reply: "Error connecting to Shelldon." });
+  } catch (err) {
+    console.error(err);
+    res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
   }
 }
