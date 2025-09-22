@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  // CORS
+  // CORS for your frontend only
   res.setHeader('Access-Control-Allow-Origin', 'https://enajif.com');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (!message) return res.status(400).json({ reply: "Please provide a message." });
 
   try {
-    // Shopify Storefront API
+    // Fetch Shopify data
     const shopDomain = "51294e-8f.myshopify.com"; // your store
     const storefrontToken = process.env.SHOPIFY_STOREFRONT_TOKEN;
 
@@ -32,23 +32,19 @@ export default async function handler(req, res) {
     });
     const shopData = await shopRes.json();
 
-    // Build context for AI
+    // Build context
     const context = [];
-
-    // Products
     shopData.data.products.edges.forEach(e => {
       context.push(`Product: ${e.node.title}\n${e.node.description}`);
     });
-    // Collections
     shopData.data.collections.edges.forEach(e => {
       context.push(`Collection: ${e.node.title}\n${e.node.description}`);
     });
-    // Pages
     shopData.data.pages.edges.forEach(e => {
       context.push(`Page: ${e.node.title}\n${e.node.body}`);
     });
 
-    // Call OpenAI
+    // Send to OpenAI
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -58,7 +54,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: `You are Shelldon, a Shopify virtual assistant. Use this knowledge to answer user questions:\n${context.join("\n\n")}` },
+          { role: "system", content: `You are Shelldon, the Shopify assistant. Use this info to answer questions:\n${context.join("\n\n")}` },
           { role: "user", content: message }
         ],
         temperature: 0.7,
