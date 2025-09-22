@@ -1,8 +1,9 @@
 {
-  "functions": {
-    "api/progressive-crawl.js": {
-      "runtime": "nodejs18.x",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/progressive-crawl",
       "schedule": "0 0 * * *"
     }
-  }
+  ]
 }
