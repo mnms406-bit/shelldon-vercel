@@ -1,9 +1,17 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/progressive-crawl.js": {
+      "runtime": "edge"
+    }
+  },
   "crons": [
     {
       "path": "/api/progressive-crawl",
-      "schedule": "0 0 * * *"
+      "schedule": "0 0 * * *",
+      "timezone": "UTC",
+      "payload": {
+        "secret": "mySuperSecret123!"
+      }
     }
   ]
 }
