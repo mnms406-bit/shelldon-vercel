@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/progressive-crawl.js": {
-      "schedule": "0 0 * * *"
-    }
-  }
-}
