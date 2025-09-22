@@ -1,56 +1,51 @@
-// api/shelldon.js
-
+// Vercel-compatible serverless function
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ reply: "Method not allowed" });
-  }
-
   try {
-    const userMessage = req.query.message || "Hello Shelldon!";
+    const userMessage = req.query.message || "";
 
-    // 🔒 API key comes from Vercel environment variable
+    // Hardcoded Shopify store
+    const SHOPIFY_STORE = "51294e-8f.myshopify.com";
+
+    // OpenAI API Key (stored in Vercel environment variables)
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-    // Hardcoded Shopify store domain (your store brain)
-    const SHOPIFY_STORE_DOMAIN = "51294e-8f.myshopify.com";
+    if (!OPENAI_API_KEY) {
+      throw new Error("OpenAI API key not found in environment variables.");
+    }
 
-    const systemPrompt = `
-You are Shelldon, a friendly AI shopping assistant for Enajif.com.
-Your brain is connected to the Shopify store at ${SHOPIFY_STORE_DOMAIN}.
-Answer customer questions using product, collection, or page context from this store.
-If you don’t know, politely say so instead of making things up.
-Always keep answers short, clear, and helpful.
-    `;
+    // Optional: You could fetch store content via Shopify Storefront API here
+    // For now, we'll assume OpenAI will use your store content for responses
 
-    // Ask OpenAI
-    const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Call OpenAI API
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1-mini",
         messages: [
-          { role: "system", content: systemPrompt },
+          {
+            role: "system",
+            content: `You are Shelldon, the virtual assistant for ${SHOPIFY_STORE}. Answer questions only based on the store content. If you don't know, reply: "I couldn’t find an answer on the store."`,
+          },
           { role: "user", content: userMessage },
         ],
         max_tokens: 300,
-        temperature: 0.7,
       }),
     });
 
-    if (!aiResponse.ok) {
-      const error = await aiResponse.json();
-      throw new Error(`OpenAI API error: ${aiResponse.status} - ${JSON.stringify(error)}`);
-    }
+    const data = await response.json();
 
-    const result = await aiResponse.json();
-    const reply = result.choices?.[0]?.message?.content || "Hmm, I don’t know what to say.";
+    let reply = "Shelldon couldn’t get a response right now.";
+    if (data.choices && data.choices[0].message && data.choices[0].message.content) {
+      reply = data.choices[0].message.content;
+    }
 
     res.status(200).json({ reply });
   } catch (err) {
     console.error(err);
-    res.status(200).json({ reply: "Error: I couldn’t connect to my brain right now." });
+    res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
   }
 }
