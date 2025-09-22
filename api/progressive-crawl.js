@@ -1,24 +1,49 @@
-// api/progressive-crawl.js
-import fetch from "node-fetch";
+export default async function handler(req) {
+  const url = new URL(req.url);
+  const secret = url.searchParams.get("secret");
 
-export default async function handler(req, res) {
-  // Secret key check
-  const auth = req.query.secret;
-  if (auth !== process.env.CRAWL_SECRET) {
-    return res.status(403).json({ error: "Forbidden: Invalid secret key" });
+  if (secret !== "mySuperSecret123!") {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
   try {
-    // Example crawl logic (replace with your actual crawling function)
-    const response = await fetch("https://enajif.com");
-    const html = await response.text();
+    const shopDomain = "http://51294e-8f.myshopify.com";
 
-    // TODO: Process HTML and store in Vercel KV / DB for Shelldon
-    console.log("Crawl completed at:", new Date().toISOString());
+    // Fetch products
+    const productsRes = await fetch(`${shopDomain}/products.json`);
+    const productsData = await productsRes.json();
 
-    res.status(200).json({ message: "Crawl successful", length: html.length });
+    // Fetch collections
+    const collectionsRes = await fetch(`${shopDomain}/collections.json`);
+    const collectionsData = await collectionsRes.json();
+
+    // Fetch pages
+    const pagesRes = await fetch(`${shopDomain}/pages.json`);
+    const pagesData = await pagesRes.json();
+
+    // Combine everything
+    const siteContent = {
+      products: productsData.products || [],
+      collections: collectionsData.collections || [],
+      pages: pagesData.pages || []
+    };
+
+    // Save to JSON file (requires Vercel KV or temporary storage)
+    // For Edge runtime, we can't write to disk persistently.
+    // You can use KV or upload to S3/GCS if needed
+    // Example: return the data for testing
+    return new Response(JSON.stringify({ success: true, siteContent }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
   } catch (err) {
-    console.error("Crawl error:", err);
-    res.status(500).json({ error: "Crawl failed" });
+    console.error("Crawler error:", err);
+    return new Response(JSON.stringify({ error: "Crawler failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 }
