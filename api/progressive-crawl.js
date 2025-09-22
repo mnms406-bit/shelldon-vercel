@@ -1,53 +1,82 @@
-// /api/progressive-crawl.js
-import fs from 'fs';
-import path from 'path';
+// api/progressive-crawl.js
 
-export default async function handler(req, res) {
-  // Only allow GET (cron job) or manual trigger
-  if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method Not Allowed' });
-  }
+import fetch from "node-fetch"; // Only needed in Vercel Node.js environment
 
-  try {
-    const SHOPIFY_STORE = 'http://51294e-8f.myshopify.com';
-    const SHOPIFY_TOKEN = process.env.SHOPIFY_ADMIN_API_KEY;
+// Replace with your Shopify store domain and Storefront Access Token
+const SHOPIFY_DOMAIN = "51294e-8f.myshopify.com";
+const STOREFRONT_TOKEN = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
 
-    // Helper to fetch from Shopify Admin API
-    const fetchShopify = async (resource) => {
-      const response = await fetch(`${SHOPIFY_STORE}/admin/api/2025-10/${resource}.json`, {
-        headers: {
-          'X-Shopify-Access-Token': SHOPIFY_TOKEN,
-          'Content-Type': 'application/json'
-        }
+// Function to fetch Shopify data
+async function fetchShopifyData() {
+  const query = `
+    {
+      products(first: 100) { edges { node { title description tags } } }
+      collections(first: 50) { edges { node { title description } } }
+      pages(first: 50) { edges { node { title body } } }
+    }
+  `;
+
+  const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/2023-10/graphql.json`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Shopify-Storefront-Access-Token": STOREFRONT_TOKEN,
+    },
+    body: JSON.stringify({ query })
+  });
+
+  const data = await res.json();
+  const siteContent = [];
+
+  if (data.data.products) {
+    data.data.products.edges.forEach(edge => {
+      siteContent.push({
+        type: "product",
+        title: edge.node.title,
+        description: edge.node.description
       });
-      return response.json();
-    };
-
-    // Fetch products, collections, pages
-    const [productsRes, collectionsRes, pagesRes] = await Promise.all([
-      fetchShopify('products?limit=250'),
-      fetchShopify('custom_collections?limit=250'),
-      fetchShopify('pages?limit=250')
-    ]);
-
-    const siteData = {
-      products: productsRes.products || [],
-      collections: collectionsRes.custom_collections || [],
-      pages: pagesRes.pages || [],
-      lastCrawl: new Date().toISOString()
-    };
-
-    // Store JSON in a file inside the serverless function (temporary in Vercel)
-    // Better: use a DB like Firebase or Supabase for persistent storage
-    const filePath = path.join('/tmp', 'siteData.json');
-    fs.writeFileSync(filePath, JSON.stringify(siteData, null, 2));
-
-    console.log(`Crawl complete: ${siteData.products.length} products, ${siteData.collections.length} collections, ${siteData.pages.length} pages.`);
-
-    res.status(200).json({ message: 'Crawl complete', counts: { products: siteData.products.length, collections: siteData.collections.length, pages: siteData.pages.length } });
-  } catch (err) {
-    console.error('Progressive crawl error:', err);
-    res.status(500).json({ message: 'Crawl failed', error: err.message });
+    });
   }
+
+  if (data.data.collections) {
+    data.data.collections.edges.forEach(edge => {
+      siteContent.push({
+        type: "collection",
+        title: edge.node.title,
+        description: edge.node.description
+      });
+    });
+  }
+
+  if (data.data.pages) {
+    data.data.pages.edges.forEach(edge => {
+      siteContent.push({
+        type: "page",
+        title: edge.node.title,
+        description: edge.node.body
+      });
+    });
+  }
+
+  return siteContent;
 }
 
+// Save or update your AI “brain” storage
+async function updateBrain(siteContent) {
+  // For simplicity, we store in-memory for now.
+  // You can replace with a database or file storage for persistence.
+  global.shelldonBrain = siteContent;
+}
+
+// Main handler
+export default async function handler(req, res) {
+  try {
+    const siteContent = await fetchShopifyData();
+    await updateBrain(siteContent);
+    console.log("Shelldon brain updated:", siteContent.length, "items");
+    res.status(200).json({ status: "Crawler ran successfully", items: siteContent.length });
+  } catch (err) {
+    console.error("Progressive crawl failed:", err);
+    res.status(500).json({ error: "Crawler failed", details: err.message });
+  }
+}
