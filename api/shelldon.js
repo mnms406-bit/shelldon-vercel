@@ -1,90 +1,56 @@
+// api/shelldon.js
+
 export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ reply: "Method not allowed" });
+  }
+
   try {
-    const { message } = req.query;
-    if (!message) {
-      return res.status(400).json({ reply: "No message provided." });
-    }
+    const userMessage = req.query.message || "Hello Shelldon!";
 
-    // 1. Fetch products from Shopify
-    const shopifyResponse = await fetch(`https://${process.env.SHOPIFY_STORE_DOMAIN}/api/2023-10/graphql.json`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Storefront-Access-Token": process.env.SHOPIFY_STOREFRONT_API_TOKEN
-      },
-      body: JSON.stringify({
-        query: `
-          {
-            products(first: 5) {
-              edges {
-                node {
-                  title
-                  description
-                  onlineStoreUrl
-                }
-              }
-            }
-            collections(first: 3) {
-              edges {
-                node {
-                  title
-                  description
-                }
-              }
-            }
-          }
-        `
-      })
-    });
+    // 🔒 API key comes from Vercel environment variable
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-    const shopifyData = await shopifyResponse.json();
-    const products = shopifyData.data?.products?.edges?.map(e => e.node) || [];
-    const collections = shopifyData.data?.collections?.edges?.map(e => e.node) || [];
+    // Hardcoded Shopify store domain (your store brain)
+    const SHOPIFY_STORE_DOMAIN = "51294e-8f.myshopify.com";
 
-    // 2. Pass products + collections to OpenAI
-    const context = `
-    Store products: ${JSON.stringify(products, null, 2)}
-    Store collections: ${JSON.stringify(collections, null, 2)}
+    const systemPrompt = `
+You are Shelldon, a friendly AI shopping assistant for Enajif.com.
+Your brain is connected to the Shopify store at ${SHOPIFY_STORE_DOMAIN}.
+Answer customer questions using product, collection, or page context from this store.
+If you don’t know, politely say so instead of making things up.
+Always keep answers short, clear, and helpful.
     `;
 
+    // Ask OpenAI
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          {
-            role: "system",
-            content: `You are Shelldon, a shopping assistant for the store at https://${process.env.SHOPIFY_STORE_DOMAIN}. 
-                      Answer based only on the provided store data.`
-          },
-          {
-            role: "assistant",
-            content: context
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ]
-      })
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMessage },
+        ],
+        max_tokens: 300,
+        temperature: 0.7,
+      }),
     });
 
-    const aiData = await aiResponse.json();
-
-    if (aiData.error) {
-      console.error("OpenAI error:", aiData.error);
-      return res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
+    if (!aiResponse.ok) {
+      const error = await aiResponse.json();
+      throw new Error(`OpenAI API error: ${aiResponse.status} - ${JSON.stringify(error)}`);
     }
 
-    const reply = aiData.choices?.[0]?.message?.content || "Sorry, I don’t have an answer for that.";
-    res.status(200).json({ reply });
+    const result = await aiResponse.json();
+    const reply = result.choices?.[0]?.message?.content || "Hmm, I don’t know what to say.";
 
+    res.status(200).json({ reply });
   } catch (err) {
-    console.error("Shelldon.js failed:", err);
-    res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
+    console.error(err);
+    res.status(200).json({ reply: "Error: I couldn’t connect to my brain right now." });
   }
 }
