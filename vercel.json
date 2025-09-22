@@ -1,17 +1,8 @@
 {
-  "functions": {
-    "api/progressive-crawl.js": {
-      "runtime": "edge"
-    }
-  },
   "crons": [
     {
-      "path": "/api/progressive-crawl",
-      "schedule": "0 0 * * *",
-      "timezone": "UTC",
-      "payload": {
-        "secret": "mySuperSecret123!"
-      }
+      "path": "/api/progressive-crawl?secret=mySuperSecret123!",
+      "schedule": "0 0 * * *"
     }
   ]
 }
