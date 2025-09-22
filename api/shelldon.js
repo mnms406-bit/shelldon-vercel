@@ -2,12 +2,12 @@
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY // Store your key in Vercel Environment Variables
+  apiKey: process.env.OPENAI_API_KEY // Securely stored in Vercel
 });
 
 export default async function handler(req, res) {
-  // === CORS ===
-  res.setHeader('Access-Control-Allow-Origin', '*'); // or 'https://yourshopifydomain.com'
+  // === CORS for your Shopify store domain ===
+  res.setHeader('Access-Control-Allow-Origin', 'http://51294e-8f.myshopify.com'); // Shopify store
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 
     // Call OpenAI
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // or any model you prefer
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
