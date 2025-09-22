@@ -1,49 +1,46 @@
-// /api/shelldon.js
-const OpenAI = require("openai");
+// api/shelldon.js
+export default async function handler(req, res) {
+  // Allow your frontend domain only
+  res.setHeader('Access-Control-Allow-Origin', 'https://Enajif.com');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-const allowedOrigins = ["https://enajif.com", "http://51294e-8f.myshopify.com"];
-
-module.exports = async (req, res) => {
-  // CORS
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  const { message } = req.query;
+  if (!message) return res.status(400).json({ reply: "Please provide a message." });
+
   try {
-    const message = req.query.message || req.body.message;
-    if (!message) {
-      return res.status(400).json({ reply: "No message provided." });
-    }
-
-    const prompt = `
-      You are Shelldon, a virtual shopping assistant for http://51294e-8f.myshopify.com.
-      Use the website content to answer user questions accurately.
-      User: "${message}"
-      Shelldon:
-    `;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are Shelldon, the virtual assistant for the Shopify store at http://51294e-8f.myshopify.com. Only provide answers relevant to this store's products, collections, and pages.`
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 500
+      })
     });
 
-    const reply = completion.choices[0]?.message?.content?.trim() || "Sorry, I couldn't generate a response.";
-
-    return res.status(200).json({ reply });
-  } catch (error) {
-    console.error("Shelldon error:", error);
-    return res.status(500).json({ reply: "Shelldon couldn’t get a response right now." });
+    const data = await response.json();
+    const reply = data?.choices?.[0]?.message?.content || "Shelldon couldn’t get a response right now.";
+    res.status(200).json({ reply });
+  } catch (err) {
+    console.error("Shelldon serverless error:", err);
+    res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
   }
-};
+}
