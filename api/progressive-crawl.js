@@ -3,62 +3,66 @@ import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
 
-const SHOPIFY_STORE = process.env.SHOPIFY_STORE; // e.g., 51294e-8f.myshopify.com
+const SHOPIFY_STORE = process.env.SHOPIFY_STORE;
 const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
 const SHOPIFY_PASSWORD = process.env.SHOPIFY_PASSWORD;
-const CHUNK_SIZE = 50; // number of items per fetch
+const CHUNK_SIZE = 25; // small enough to avoid timeout
 
-// Utility function to fetch Shopify resources with pagination
-async function fetchShopifyResource(resource, pageInfo = null) {
-  let url = `https://${SHOPIFY_API_KEY}:${SHOPIFY_PASSWORD}@${SHOPIFY_STORE}/admin/api/2025-10/${resource}.json?limit=${CHUNK_SIZE}`;
-  if (pageInfo) url += `&page_info=${pageInfo}`;
+const CURSOR_FILE = path.join(process.cwd(), "crawl-cursor.json");
+const DATA_FILE = path.join(process.cwd(), "shopify-site-data.json");
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch ${resource}: ${res.status}`);
-  const data = await res.json();
-  return data[resource];
+// Load cursor state
+function loadCursor() {
+  if (fs.existsSync(CURSOR_FILE)) return JSON.parse(fs.readFileSync(CURSOR_FILE, "utf-8"));
+  return {};
 }
 
-// Main crawl handler
+// Save cursor state
+function saveCursor(cursor) {
+  fs.writeFileSync(CURSOR_FILE, JSON.stringify(cursor, null, 2));
+}
+
+// Save site data
+function saveData(data) {
+  data.timestamp = new Date().toISOString();
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+// Fetch Shopify resource
+async function fetchShopify(resource, page = 1) {
+  const url = `https://${SHOPIFY_API_KEY}:${SHOPIFY_PASSWORD}@${SHOPIFY_STORE}/admin/api/2025-10/${resource}.json?limit=${CHUNK_SIZE}&page=${page}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed ${resource} page ${page}: ${res.status}`);
+  const json = await res.json();
+  return json[resource];
+}
+
 export default async function handler(req, res) {
-  // Simple secret to manually trigger
   const secret = req.query.secret;
-  if (secret !== process.env.CRAWL_SECRET) {
-    return res.status(401).json({ reply: "Unauthorized" });
-  }
+  if (secret !== process.env.CRAWL_SECRET) return res.status(401).json({ reply: "Unauthorized" });
 
   try {
-    const siteData = {};
-
-    // Resources to crawl
     const resources = ["products", "pages", "custom_collections", "smart_collections", "blogs", "articles"];
+    const cursor = loadCursor();
+    const siteData = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, "utf-8")) : {};
 
     for (const resource of resources) {
-      let allItems = [];
-      let pageInfo = null;
+      const currentPage = cursor[resource] || 1;
+      const items = await fetchShopify(resource, currentPage);
 
-      do {
-        const items = await fetchShopifyResource(resource, pageInfo);
-        allItems = allItems.concat(items);
+      siteData[resource] = siteData[resource] ? siteData[resource].concat(items) : items;
 
-        // For simplicity, we stop when less than CHUNK_SIZE returned
-        if (items.length < CHUNK_SIZE) break;
-
-        // Here you could use Shopify Link headers for pagination if needed
-        pageInfo = null; // replace with actual next_page_info if implementing cursor pagination
-      } while (true);
-
-      siteData[resource] = allItems;
+      if (items.length < CHUNK_SIZE) {
+        cursor[resource] = 1; // finished this resource, reset to start next run
+      } else {
+        cursor[resource] = currentPage + 1; // continue next run
+      }
     }
 
-    // Add timestamp
-    siteData.timestamp = new Date().toISOString();
+    saveCursor(cursor);
+    saveData(siteData);
 
-    // Save JSON file
-    const filePath = path.join(process.cwd(), "shopify-site-data.json");
-    fs.writeFileSync(filePath, JSON.stringify(siteData, null, 2));
-
-    res.status(200).json({ reply: `Shopify crawl completed. ${resources.length} resources saved.` });
+    res.status(200).json({ reply: "Chunked crawl completed successfully." });
   } catch (err) {
     console.error("Crawl error:", err);
     res.status(500).json({ reply: "Crawl failed. Check server logs." });
