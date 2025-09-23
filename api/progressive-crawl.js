@@ -1,70 +1,42 @@
-// api/progressive-crawl.js
-import fetch from "node-fetch";
-import fs from "fs";
-import path from "path";
+export const config = {
+  runtime: "edge"
+};
 
-const SHOPIFY_STORE = process.env.SHOPIFY_STORE;
-const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
-const SHOPIFY_PASSWORD = process.env.SHOPIFY_PASSWORD;
-const CHUNK_SIZE = 25; // small enough to avoid timeout
-
-const CURSOR_FILE = path.join(process.cwd(), "crawl-cursor.json");
-const DATA_FILE = path.join(process.cwd(), "shopify-site-data.json");
-
-// Load cursor state
-function loadCursor() {
-  if (fs.existsSync(CURSOR_FILE)) return JSON.parse(fs.readFileSync(CURSOR_FILE, "utf-8"));
-  return {};
-}
-
-// Save cursor state
-function saveCursor(cursor) {
-  fs.writeFileSync(CURSOR_FILE, JSON.stringify(cursor, null, 2));
-}
-
-// Save site data
-function saveData(data) {
-  data.timestamp = new Date().toISOString();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
-
-// Fetch Shopify resource
-async function fetchShopify(resource, page = 1) {
-  const url = `https://${SHOPIFY_API_KEY}:${SHOPIFY_PASSWORD}@${SHOPIFY_STORE}/admin/api/2025-10/${resource}.json?limit=${CHUNK_SIZE}&page=${page}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed ${resource} page ${page}: ${res.status}`);
-  const json = await res.json();
-  return json[resource];
-}
-
-export default async function handler(req, res) {
-  const secret = req.query.secret;
-  if (secret !== process.env.CRAWL_SECRET) return res.status(401).json({ reply: "Unauthorized" });
+export default async function handler(req) {
+  const url = new URL(req.url);
+  const secret = url.searchParams.get("secret");
+  if (secret !== process.env.CRAWL_SECRET) {
+    return new Response(JSON.stringify({ reply: "Unauthorized" }), { status: 401 });
+  }
 
   try {
-    const resources = ["products", "pages", "custom_collections", "smart_collections", "blogs", "articles"];
-    const cursor = loadCursor();
-    const siteData = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, "utf-8")) : {};
+    // Example: fetch products, pages, collections from Shopify Admin API
+    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN; // e.g. http://51294e-8f.myshopify.com
+    const adminToken = process.env.SHOPIFY_ADMIN_TOKEN;
 
-    for (const resource of resources) {
-      const currentPage = cursor[resource] || 1;
-      const items = await fetchShopify(resource, currentPage);
+    const endpoints = [
+      `/admin/api/2025-10/products.json`,
+      `/admin/api/2025-10/collections.json`,
+      `/admin/api/2025-10/pages.json`
+    ];
 
-      siteData[resource] = siteData[resource] ? siteData[resource].concat(items) : items;
+    const results = {};
 
-      if (items.length < CHUNK_SIZE) {
-        cursor[resource] = 1; // finished this resource, reset to start next run
-      } else {
-        cursor[resource] = currentPage + 1; // continue next run
-      }
+    for (const ep of endpoints) {
+      const res = await fetch(`https://${shopDomain}${ep}`, {
+        headers: {
+          "X-Shopify-Access-Token": adminToken,
+          "Content-Type": "application/json"
+        }
+      });
+      results[ep] = await res.json();
     }
 
-    saveCursor(cursor);
-    saveData(siteData);
+    // Optionally save results to KV, D1, or cloud storage here
 
-    res.status(200).json({ reply: "Chunked crawl completed successfully." });
+    return new Response(JSON.stringify({ status: "success", data: results }), { status: 200 });
   } catch (err) {
     console.error("Crawl error:", err);
-    res.status(500).json({ reply: "Crawl failed. Check server logs." });
+    return new Response(JSON.stringify({ reply: "Crawl failed." }), { status: 500 });
   }
 }
