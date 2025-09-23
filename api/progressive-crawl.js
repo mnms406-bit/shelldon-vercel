@@ -1,63 +1,66 @@
+// api/progressive-crawl.js
+import fetch from "node-fetch";
+import fs from "fs";
+import path from "path";
+
+const SHOPIFY_STORE = process.env.SHOPIFY_STORE; // e.g., 51294e-8f.myshopify.com
+const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
+const SHOPIFY_PASSWORD = process.env.SHOPIFY_PASSWORD;
+const CHUNK_SIZE = 50; // number of items per fetch
+
+// Utility function to fetch Shopify resources with pagination
+async function fetchShopifyResource(resource, pageInfo = null) {
+  let url = `https://${SHOPIFY_API_KEY}:${SHOPIFY_PASSWORD}@${SHOPIFY_STORE}/admin/api/2025-10/${resource}.json?limit=${CHUNK_SIZE}`;
+  if (pageInfo) url += `&page_info=${pageInfo}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch ${resource}: ${res.status}`);
+  const data = await res.json();
+  return data[resource];
+}
+
+// Main crawl handler
 export default async function handler(req, res) {
-  // Only allow frontend origin
-  const FRONTEND_ORIGIN = "https://enajif.com";
-  res.setHeader("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") return res.status(200).end();
-
-  const SHOPIFY_STORE = "http://51294e-8f.myshopify.com";
-  const CHUNK_SIZE = 5; // smaller chunk to avoid timeout
+  // Simple secret to manually trigger
+  const secret = req.query.secret;
+  if (secret !== process.env.CRAWL_SECRET) {
+    return res.status(401).json({ reply: "Unauthorized" });
+  }
 
   try {
-    // Example: get products
-    const productsRes = await fetch(`${SHOPIFY_STORE}/products.json`);
-    const products = (await productsRes.json()).products || [];
+    const siteData = {};
 
-    // Example: get collections
-    const collectionsRes = await fetch(`${SHOPIFY_STORE}/collections.json`);
-    const collections = (await collectionsRes.json()).collections || [];
+    // Resources to crawl
+    const resources = ["products", "pages", "custom_collections", "smart_collections", "blogs", "articles"];
 
-    // Example: get pages
-    const pagesRes = await fetch(`${SHOPIFY_STORE}/pages.json`);
-    const pages = (await pagesRes.json()).pages || [];
+    for (const resource of resources) {
+      let allItems = [];
+      let pageInfo = null;
 
-    // Combine URLs
-    const urls = [
-      ...products.map(p => `/products/${p.handle}`),
-      ...collections.map(c => `/collections/${c.handle}`),
-      ...pages.map(p => `/pages/${p.handle}`)
-    ];
+      do {
+        const items = await fetchShopifyResource(resource, pageInfo);
+        allItems = allItems.concat(items);
 
-    const result = [];
+        // For simplicity, we stop when less than CHUNK_SIZE returned
+        if (items.length < CHUNK_SIZE) break;
 
-    for (let i = 0; i < urls.length; i += CHUNK_SIZE) {
-      const chunk = urls.slice(i, i + CHUNK_SIZE);
-      const chunkResults = await Promise.all(
-        chunk.map(async (url) => {
-          try {
-            const r = await fetch(`${SHOPIFY_STORE}${url}`);
-            const html = await r.text();
-            return { url, content: html };
-          } catch {
-            return { url, content: "" };
-          }
-        })
-      );
-      result.push(...chunkResults);
+        // Here you could use Shopify Link headers for pagination if needed
+        pageInfo = null; // replace with actual next_page_info if implementing cursor pagination
+      } while (true);
+
+      siteData[resource] = allItems;
     }
 
-    // Save to /tmp (serverless writable path)
-    const filePath = "/tmp/shelldon-brain.json";
-    await fs.promises.writeFile(filePath, JSON.stringify({
-      lastCrawled: new Date().toISOString(),
-      data: result
-    }, null, 2));
+    // Add timestamp
+    siteData.timestamp = new Date().toISOString();
 
-    res.status(200).json({ message: "Crawl completed", total: result.length });
+    // Save JSON file
+    const filePath = path.join(process.cwd(), "shopify-site-data.json");
+    fs.writeFileSync(filePath, JSON.stringify(siteData, null, 2));
+
+    res.status(200).json({ reply: `Shopify crawl completed. ${resources.length} resources saved.` });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Crawl failed" });
+    console.error("Crawl error:", err);
+    res.status(500).json({ reply: "Crawl failed. Check server logs." });
   }
 }
