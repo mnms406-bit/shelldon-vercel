@@ -2,86 +2,77 @@
 import fs from "fs";
 import path from "path";
 
-const STORE_DOMAIN = "51294e-8f.myshopify.com";
-const ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
-const API_VERSION = "2025-10";
+const STORE_URL = "http://51294e-8f.myshopify.com";
+const ADMIN_API_VERSION = "2023-10"; // match your store's API version
+const API_KEY = process.env.SHOPIFY_ADMIN_API_KEY;
+const PASSWORD = process.env.SHOPIFY_ADMIN_API_PASSWORD;
 
-// Directory to store data
-const DATA_DIR = path.resolve("./data");
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
+const RESOURCES = [
+  { name: "products", endpoint: `/admin/api/${ADMIN_API_VERSION}/products.json` },
+  { name: "collections", endpoint: `/admin/api/${ADMIN_API_VERSION}/collections.json` },
+  { name: "pages", endpoint: `/admin/api/${ADMIN_API_VERSION}/pages.json` }
+];
 
-// Load or initialize last crawl timestamps
-function loadTimestamps() {
-  const file = path.join(DATA_DIR, "timestamps.json");
-  if (!fs.existsSync(file)) return {};
-  return JSON.parse(fs.readFileSync(file, "utf8"));
-}
+const PROGRESS_FILE = path.resolve("./progress.json");
+const OUTPUT_DIR = path.resolve("./crawl-data");
 
-function saveTimestamps(timestamps) {
-  const file = path.join(DATA_DIR, "timestamps.json");
-  fs.writeFileSync(file, JSON.stringify(timestamps, null, 2));
-}
+export default async function handler(req, res) {
+  // Allow frontend CORS
+  res.setHeader("Access-Control-Allow-Origin", "https://enajif.com");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-// Save resource data
-function saveResourceData(resource, items) {
-  const file = path.join(DATA_DIR, `${resource}.json`);
-  let existing = [];
-  if (fs.existsSync(file)) existing = JSON.parse(fs.readFileSync(file, "utf8"));
+  if (req.method === "OPTIONS") return res.status(200).end();
 
-  // Replace or append updated items
-  const updated = [...existing.filter(e => !items.find(i => i.id === e.id)), ...items];
-  fs.writeFileSync(file, JSON.stringify(updated, null, 2));
-}
+  // Ensure output directory exists
+  if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
 
-// Fetch resources incrementally
-async function fetchResource(resource, updatedSince) {
-  let allItems = [];
-  let page = 1;
-  const limit = 50;
-
-  while (true) {
-    const url = `https://${STORE_DOMAIN}/admin/api/${API_VERSION}/${resource}.json?limit=${limit}&page=${page}` +
-      (updatedSince ? `&updated_at_min=${updatedSince}` : "");
-
-    const res = await fetch(url, {
-      headers: { "X-Shopify-Access-Token": ACCESS_TOKEN }
-    });
-
-    if (!res.ok) throw new Error(`Failed to fetch ${resource}: ${res.statusText}`);
-    const data = await res.json();
-
-    const items = data[resource] || [];
-    if (items.length === 0) break;
-
-    allItems.push(...items);
-    if (items.length < limit) break;
-    page++;
+  // Load progress
+  let progress = {};
+  if (fs.existsSync(PROGRESS_FILE)) {
+    progress = JSON.parse(fs.readFileSync(PROGRESS_FILE, "utf-8"));
   }
 
-  return allItems;
-}
-
-// Main handler
-export default async function handler(req, res) {
   try {
-    const timestamps = loadTimestamps();
-    const resources = ["products", "collections", "pages"];
+    for (const resource of RESOURCES) {
+      const lastPage = progress[resource.name]?.page || 1;
+      const limit = 50; // Shopify pagination limit
+      const url = `${STORE_URL}${resource.endpoint}?limit=${limit}&page=${lastPage}`;
 
-    for (const resource of resources) {
-      const updatedSince = timestamps[resource] || null;
-      const items = await fetchResource(resource, updatedSince);
+      const response = await fetch(url, {
+        headers: {
+          "Authorization": `Basic ${Buffer.from(`${API_KEY}:${PASSWORD}`).toString("base64")}`,
+          "Content-Type": "application/json"
+        }
+      });
 
-      if (items.length > 0) {
-        saveResourceData(resource, items);
-        timestamps[resource] = new Date().toISOString();
+      if (!response.ok) {
+        console.error(`${resource.name} fetch failed:`, response.statusText);
+        continue;
       }
+
+      const data = await response.json();
+      const items = data[resource.name] || [];
+
+      // Write to file with timestamp
+      const timestamp = new Date().toISOString();
+      const filePath = path.join(OUTPUT_DIR, `${resource.name}_page${lastPage}.json`);
+      fs.writeFileSync(filePath, JSON.stringify({ timestamp, items }, null, 2));
+
+      // Update progress
+      progress[resource.name] = {
+        page: lastPage + 1,
+        lastRun: timestamp,
+        finished: items.length < limit // If fewer than limit, this resource finished
+      };
     }
 
-    saveTimestamps(timestamps);
+    // Save progress
+    fs.writeFileSync(PROGRESS_FILE, JSON.stringify(progress, null, 2));
 
-    res.status(200).json({ status: "success", timestamps });
+    res.status(200).json({ status: "success", progress });
   } catch (err) {
     console.error("Progressive crawl error:", err);
-    res.status(500).json({ status: "error", message: err.message });
+    res.status(500).json({ status: "error", message: "Crawl failed.", error: err.message });
   }
 }
