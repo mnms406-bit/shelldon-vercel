@@ -1,7 +1,8 @@
 {
   "crons": [
-    { "path": "/api/crawl-products?page=1", "schedule": "0 0 * * *" },
-    { "path": "/api/crawl-collections?page=1", "schedule": "0 0 * * *" },
-    { "path": "/api/crawl-pages?page=1", "schedule": "0 0 * * *" }
+    {
+      "path": "/api/progressive-crawl",
+      "schedule": "0 0 * * *"
+    }
   ]
 }
