@@ -1,32 +1,32 @@
-// api/shelldon.js
 export default async function handler(req, res) {
-  // Allow your frontend domain
-  res.setHeader('Access-Control-Allow-Origin', 'https://enajif.com');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader("Access-Control-Allow-Origin", "https://enajif.com"); 
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
 
   const { message } = req.query;
-  if (!message) return res.status(400).json({ reply: "Please provide a message." });
+  if (!message) {
+    return res.status(400).json({ reply: "Please provide a message." });
+  }
 
   try {
-    const siteContent = global.shelldonBrain || [];
+    // Pull the latest crawl data
+    const crawlRes = await fetch(`${process.env.BASE_URL}/api/get-crawl`);
+    const crawlData = await crawlRes.json();
 
-    // Search local brain first
-    const lowerMsg = message.toLowerCase();
-    const match = siteContent.find(item =>
-      (item.title && item.title.toLowerCase().includes(lowerMsg)) ||
-      (item.description && item.description.toLowerCase().includes(lowerMsg))
-    );
+    const context = `
+      You are Shelldon, the virtual assistant for Enajif.com.
+      Use this crawl data to answer customer questions about products, collections, and pages.
 
-    if (match) {
-      return res.status(200).json({
-        reply: `${match.type.toUpperCase()}: ${match.title}\n${match.description}`
-      });
-    }
+      Products: ${JSON.stringify(crawlData.products)}
+      Collections: ${JSON.stringify(crawlData.collections)}
+      Pages: ${JSON.stringify(crawlData.pages)}
+    `;
 
-    // Fallback to OpenAI if no match
+    // Send to OpenAI
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -36,26 +36,20 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          {
-            role: "system",
-            content: `You are Shelldon, the virtual assistant for the Shopify store at http://51294e-8f.myshopify.com. Only provide answers relevant to this store's products, collections, and pages.`
-          },
-          {
-            role: "user",
-            content: message
-          }
+          { role: "system", content: context },
+          { role: "user", content: message }
         ],
         temperature: 0.7,
-        max_tokens: 500
+        max_tokens: 400
       })
     });
 
     const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content || "Shelldon couldn’t get a response right now.";
+    const reply = data?.choices?.[0]?.message?.content || "⚠️ Shelldon couldn’t get a response.";
     res.status(200).json({ reply });
 
   } catch (err) {
-    console.error("Shelldon serverless error:", err);
-    res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
+    console.error("Shelldon error:", err);
+    res.status(500).json({ reply: "⚠️ Shelldon couldn’t get a response." });
   }
 }
