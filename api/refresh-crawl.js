@@ -1,33 +1,31 @@
+// /api/refresh-crawl.js
 export default async function handler(req, res) {
   try {
-    // Call your progressive crawler endpoint directly
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/progressive-crawl`, {
-      headers: {
-        "Authorization": `Bearer ${process.env.CRAWL_SECRET || ""}`
-      }
+    // Fallback base URL: use env if available, otherwise hardcode your Vercel URL
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "https://shelldon-vercel.vercel.app";
+
+    const response = await fetch(`${baseUrl}/api/progressive-crawl`, {
+      method: "GET",
     });
+
+    if (!response.ok) {
+      throw new Error(`Crawl request failed: ${response.statusText}`);
+    }
 
     const data = await response.json();
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        status: "error",
-        message: data.message || "progressive-crawl failed",
-        details: data
-      });
-    }
-
-    return res.status(200).json({
+    res.status(200).json({
       status: "success",
-      message: "Manual crawl triggered successfully",
-      result: data
+      message: "Crawl triggered successfully.",
+      data,
     });
-
-  } catch (err) {
-    return res.status(500).json({
+  } catch (error) {
+    res.status(500).json({
       status: "error",
-      message: err.message,
-      stack: err.stack
+      message: "Failed to refresh crawl.",
+      details: error.message,
     });
   }
 }
