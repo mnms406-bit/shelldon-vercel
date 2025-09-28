@@ -14,8 +14,18 @@ export default async function handler(req, res) {
 
     // Example: when Shelldon needs fresh data, trigger refresh
     if (message.toLowerCase().includes("refresh crawl")) {
-      const crawlRes = await fetch(`${baseUrl}/api/refresh-crawl`);
+      const crawlRes = await fetch(
+        `${baseUrl}/api/refresh-crawl?secret=${process.env.CRON_SECRET}`
+      );
+
       const crawlData = await crawlRes.json();
+
+      if (!crawlRes.ok) {
+        return res.status(500).json({
+          error: "Failed to refresh crawl",
+          details: crawlData,
+        });
+      }
 
       return res.status(200).json({
         reply: "I’ve refreshed the crawl data for you!",
@@ -23,7 +33,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Otherwise Shelldon uses cached crawl data (from storage, db, etc.)
+    // Otherwise Shelldon uses cached crawl data (from storage/db)
     return res.status(200).json({
       reply: `You said: "${message}". (Here is where I’d use the latest crawl data)`,
     });
