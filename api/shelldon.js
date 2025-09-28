@@ -1,82 +1,85 @@
-// api/shelldon.js
-import fs from "fs";
-import path from "path";
+<!-- Shelldon Chat Widget Start -->
+<div id="shelldon-bubble" style="position:fixed; bottom:20px; right:20px; width:60px; height:60px; background:#27ae60; border-radius:50%; box-shadow:0 4px 10px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:9999;">
+  <span style="color:white; font-size:28px;">💬</span>
+</div>
 
-export default async function handler(req, res) {
-  // Enable CORS for your frontend
-  res.setHeader("Access-Control-Allow-Origin", "https://enajif.com");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+<div id="shelldon-chat" style="position:fixed; bottom:90px; right:20px; width:320px; max-height:500px; background:white; border:1px solid #ddd; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.15); display:none; flex-direction:column; font-family:Arial, sans-serif; z-index:9999; overflow:hidden;">
+  <div style="background:#27ae60; color:white; padding:12px; font-weight:bold; font-size:16px; display:flex; justify-content:space-between; align-items:center;">
+    <span>💬 Shelldon</span>
+    <span id="shelldon-close" style="cursor:pointer; font-size:18px;">✖</span>
+  </div>
+  <div id="chat-body" style="flex:1; padding:12px; overflow-y:auto; font-size:14px; display:flex; flex-direction:column;"></div>
+  <div style="display:flex; border-top:1px solid #ddd;">
+    <input id="chat-input" type="text" placeholder="Ask me anything..." style="flex:1; border:none; padding:10px; font-size:14px; outline:none;">
+    <button id="chat-send" style="background:#27ae60; color:white; border:none; padding:0 16px; cursor:pointer;">Send</button>
+  </div>
+</div>
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+<script>
+(function() {
+  const bubble = document.getElementById("shelldon-bubble");
+  const chat = document.getElementById("shelldon-chat");
+  const closeBtn = document.getElementById("shelldon-close");
+  const body = document.getElementById("chat-body");
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("chat-send");
 
-  const { message } = req.query;
-  if (!message) return res.status(400).json({ reply: "Please provide a message." });
+  bubble.onclick = () => { chat.style.display = "flex"; bubble.style.display = "none"; };
+  closeBtn.onclick = () => { chat.style.display = "none"; bubble.style.display = "flex"; };
 
-  const crawlFilePath = path.join(process.cwd(), "crawl-data.json");
+  function addMessage(content, sender) {
+    const msg = document.createElement("div");
+    msg.style.margin = "6px 0";
+    msg.style.padding = "10px";
+    msg.style.borderRadius = "10px";
+    msg.style.maxWidth = "80%";
+    msg.style.wordWrap = "break-word";
+    msg.style.whiteSpace = "pre-wrap";
 
-  // Load existing crawl data
-  let crawlData = null;
-  try {
-    if (fs.existsSync(crawlFilePath)) {
-      const raw = fs.readFileSync(crawlFilePath, "utf-8");
-      crawlData = JSON.parse(raw);
+    if(sender === "user") {
+      msg.style.background = "#27ae60";
+      msg.style.color = "#fff";
+      msg.style.alignSelf = "flex-end";
+      msg.textContent = content;
+      body.appendChild(msg);
+      body.scrollTop = body.scrollHeight;
+    } else {
+      msg.style.background = "#ecf0f1";
+      msg.style.color = "#2c3e50";
+      msg.style.alignSelf = "flex-start";
+      body.appendChild(msg);
+
+      let i = 0;
+      const interval = setInterval(() => {
+        msg.textContent += content.charAt(i);
+        i++;
+        body.scrollTop = body.scrollHeight;
+        if(i >= content.length) clearInterval(interval);
+      }, 30);
     }
-  } catch (err) {
-    console.error("Error reading crawl file:", err);
   }
 
-  // Check if crawl data exists and is recent (less than 24h old)
-  const needsRefresh = !crawlData || !crawlData.lastCrawl || (new Date() - new Date(crawlData.lastCrawl)) > 24 * 60 * 60 * 1000;
+  async function sendMessage() {
+    const text = input.value.trim();
+    if(!text) return;
+    addMessage(text, "user");
+    input.value = "";
 
-  if (needsRefresh) {
     try {
-      console.log("Triggering progressive crawl...");
-      // Call your serverless progressive-crawl endpoint
-      await fetch(`https://shelldon-vercel.vercel.app/api/progressive-crawl?secret=${process.env.CRAWL_SECRET}`);
-      // Reload crawlData after crawl
-      const raw = fs.readFileSync(crawlFilePath, "utf-8");
-      crawlData = JSON.parse(raw);
-    } catch (err) {
-      console.error("Error during auto-refresh crawl:", err);
-      return res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
+      const res = await fetch("https://shelldon-vercel.vercel.app/api/shelldon?message=" + encodeURIComponent(text));
+      const data = await res.json();
+      addMessage(data.reply || "⚠️ Shelldon couldn’t get a response.", "shelldon");
+    } catch(err) {
+      console.error(err);
+      addMessage("⚠️ Shelldon couldn’t get a response.", "shelldon");
     }
   }
 
-  // Construct OpenAI payload
-  const openAiPayload = {
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `You are Shelldon, assistant for http://51294e-8f.myshopify.com. Answer ONLY based on this site data: ${JSON.stringify(crawlData)}`
-      },
-      {
-        role: "user",
-        content: message
-      }
-    ],
-    temperature: 0.7,
-    max_tokens: 500
-  };
+  sendBtn.addEventListener("click", sendMessage);
+  input.addEventListener("keypress", (e) => { if(e.key === "Enter") sendMessage(); });
 
-  try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify(openAiPayload)
-    });
-
-    const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content || "Shelldon couldn’t get a response right now.";
-    res.status(200).json({ reply });
-  } catch (err) {
-    console.error("Shelldon OpenAI error:", err);
-    res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
-  }
-}
+  // Initial greeting
+  addMessage("Hi, I’m Shelldon! How can I help with your shopping today?", "shelldon");
+})();
+</script>
+<!-- Shelldon Chat Widget End -->
