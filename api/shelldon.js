@@ -1,55 +1,36 @@
+// /api/shelldon.js
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://enajif.com"); 
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  const { message } = req.query;
-  if (!message) {
-    return res.status(400).json({ reply: "Please provide a message." });
-  }
-
   try {
-    // Pull the latest crawl data
-    const crawlRes = await fetch(`${process.env.BASE_URL}/api/get-crawl`);
-    const crawlData = await crawlRes.json();
+    const { message } = req.query;
 
-    const context = `
-      You are Shelldon, the virtual assistant for Enajif.com.
-      Use this crawl data to answer customer questions about products, collections, and pages.
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
 
-      Products: ${JSON.stringify(crawlData.products)}
-      Collections: ${JSON.stringify(crawlData.collections)}
-      Pages: ${JSON.stringify(crawlData.pages)}
-    `;
+    // Base URL for internal API calls
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "https://shelldon-vercel.vercel.app";
 
-    // Send to OpenAI
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: context },
-          { role: "user", content: message }
-        ],
-        temperature: 0.7,
-        max_tokens: 400
-      })
+    // Example: when Shelldon needs fresh data, trigger refresh
+    if (message.toLowerCase().includes("refresh crawl")) {
+      const crawlRes = await fetch(`${baseUrl}/api/refresh-crawl`);
+      const crawlData = await crawlRes.json();
+
+      return res.status(200).json({
+        reply: "I’ve refreshed the crawl data for you!",
+        crawlStatus: crawlData,
+      });
+    }
+
+    // Otherwise Shelldon uses cached crawl data (from storage, db, etc.)
+    return res.status(200).json({
+      reply: `You said: "${message}". (Here is where I’d use the latest crawl data)`,
     });
-
-    const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content || "⚠️ Shelldon couldn’t get a response.";
-    res.status(200).json({ reply });
-
-  } catch (err) {
-    console.error("Shelldon error:", err);
-    res.status(500).json({ reply: "⚠️ Shelldon couldn’t get a response." });
+  } catch (error) {
+    res.status(500).json({
+      error: "Shelldon failed to respond",
+      details: error.message,
+    });
   }
 }
