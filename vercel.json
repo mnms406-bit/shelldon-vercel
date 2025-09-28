@@ -1,15 +1,8 @@
 {
-  "functions": {
-    "api/progressive-crawl.js": {
-      "memory": 512,
-      "maxDuration": 60
-    }
-  },
-  "routes": [
+  "crons": [
     {
-      "src": "/api/progressive-crawl",
-      "methods": ["GET"],
-      "dest": "/api/progressive-crawl.js"
+      "path": "/api/progressive-crawl",
+      "schedule": "0 0 * * *"
     }
   ]
 }
