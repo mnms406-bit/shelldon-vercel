@@ -1,31 +1,34 @@
-// /api/refresh-crawl.js
-export default async function handler(req, res) {
-  try {
-    // Fallback base URL: use env if available, otherwise hardcode your Vercel URL
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "https://shelldon-vercel.vercel.app";
+<!-- Manual Crawl Trigger -->
+<script>
+  async function refreshCrawl() {
+    const button = document.getElementById('refresh-crawl-btn');
+    if(button) button.disabled = true;
 
-    const response = await fetch(`${baseUrl}/api/progressive-crawl`, {
-      method: "GET",
-    });
+    try {
+      const res = await fetch('https://shelldon-vercel.vercel.app/api/progressive-crawl?secret=MY_CRAWL_SECRET');
+      const data = await res.json();
 
-    if (!response.ok) {
-      throw new Error(`Crawl request failed: ${response.statusText}`);
+      if(data.status === 'success') {
+        console.log('Crawl triggered successfully:', data);
+        alert('Crawl triggered successfully!');
+      } else {
+        console.error('Crawl failed:', data);
+        alert('Crawl failed: ' + (data.message || 'Unknown error'));
+      }
+    } catch(err) {
+      console.error('Error triggering crawl:', err);
+      alert('Error triggering crawl. Check console for details.');
+    } finally {
+      if(button) button.disabled = false;
     }
-
-    const data = await response.json();
-
-    res.status(200).json({
-      status: "success",
-      message: "Crawl triggered successfully.",
-      data,
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: "Failed to refresh crawl.",
-      details: error.message,
-    });
   }
-}
+
+  // Example: bind to a button with id="refresh-crawl-btn"
+  document.addEventListener('DOMContentLoaded', () => {
+    const button = document.getElementById('refresh-crawl-btn');
+    if(button) button.addEventListener('click', refreshCrawl);
+  });
+</script>
+
+<!-- Example button -->
+<button id="refresh-crawl-btn">Refresh Crawl Now</button>
