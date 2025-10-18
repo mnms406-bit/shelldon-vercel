@@ -1,61 +1,117 @@
 import fs from "fs";
 import path from "path";
-import fetch from "node-fetch";
 
-const STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN; // e.g., "51294e-8f.myshopify.com"
-const API_KEY = process.env.SHOPIFY_STOREFRONT_API_KEY; // your public Storefront API key
-const JSON_PATH = path.join("/tmp", "crawl-data.json");
-const CHUNK_SIZE = 50; // items per chunk
+// CONFIG
+const SHOPIFY_DOMAIN = process.env.SHOPIFY_DOMAIN; // e.g., yourstore.myshopify.com
+const SHOPIFY_STOREFRONT_API_KEY = process.env.SHOPIFY_STOREFRONT_API_KEY;
+const CHUNK_SIZE = 20; // number of products/pages per request
+const TEMP_DIR = "/tmp";
 
+// Helper to fetch Shopify Storefront API
+async function fetchShopify(query) {
+  const res = await fetch(`https://${SHOPIFY_DOMAIN}/api/2023-07/graphql.json`, {
+    method: "POST",
+    headers: {
+      "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query }),
+  });
+  if (!res.ok) throw new Error(`Shopify fetch failed: ${res.status}`);
+  return res.json();
+}
+
+// Chunked product fetch
+async function fetchProducts(cursor = null) {
+  const after = cursor ? `"${cursor}"` : null;
+  const query = `
+    {
+      products(first: ${CHUNK_SIZE}${after ? `, after: ${after}` : ""}) {
+        edges {
+          cursor
+          node {
+            id
+            title
+            handle
+            description
+            images(first:5){ edges { node { src altText } } }
+            variants(first:5){ edges { node { id title price } } }
+          }
+        }
+        pageInfo { hasNextPage }
+      }
+    }
+  `;
+  return fetchShopify(query);
+}
+
+// Example: fetch pages in chunks
+async function fetchPages(cursor = null) {
+  const after = cursor ? `"${cursor}"` : null;
+  const query = `
+    {
+      pages(first: ${CHUNK_SIZE}${after ? `, after: ${after}` : ""}) {
+        edges {
+          cursor
+          node { id title handle body }
+        }
+        pageInfo { hasNextPage }
+      }
+    }
+  `;
+  return fetchShopify(query);
+}
+
+// Write JSON with timestamp
+function writeData(filename, data) {
+  if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR);
+  const filePath = path.join(TEMP_DIR, filename);
+  fs.writeFileSync(filePath, JSON.stringify({ timestamp: new Date(), data }, null, 2));
+  return filePath;
+}
+
+// API handler
 export default async function handler(req, res) {
   try {
-    // Load previous crawl data
-    let crawlData = {};
-    if (fs.existsSync(JSON_PATH)) {
-      crawlData = JSON.parse(fs.readFileSync(JSON_PATH, "utf8"));
-    } else {
-      crawlData = { products: [], collections: [], pages: {} };
+    // Optional secret for manual trigger
+    const secret = req.query.secret;
+    if (process.env.CRAWL_SECRET && secret !== process.env.CRAWL_SECRET) {
+      return res.status(401).json({ status: "error", message: "Unauthorized" });
     }
 
-    // Determine which resource to crawl this run
-    const resourceOrder = ["products", "collections", "pages"];
-    let resource = resourceOrder.find(r => (crawlData[r]?.lastIndex || 0) < (crawlData[r]?.total || Infinity));
-    if (!resource) resource = "products"; // start with products if all done
-
-    // Fetch next chunk
-    let url;
-    let lastIndex = crawlData[resource]?.lastIndex || 0;
-    if (resource === "products") {
-      url = `https://${STORE_DOMAIN}/api/2023-07/products.json?limit=${CHUNK_SIZE}&page=${Math.floor(lastIndex/CHUNK_SIZE)+1}`;
-    } else if (resource === "collections") {
-      url = `https://${STORE_DOMAIN}/api/2023-07/collections.json?limit=${CHUNK_SIZE}&page=${Math.floor(lastIndex/CHUNK_SIZE)+1}`;
-    } else if (resource === "pages") {
-      url = `https://${STORE_DOMAIN}/api/2023-07/pages.json?limit=${CHUNK_SIZE}&page=${Math.floor(lastIndex/CHUNK_SIZE)+1}`;
+    // Fetch Products
+    let allProducts = [];
+    let productCursor = null;
+    let hasNext = true;
+    while (hasNext) {
+      const result = await fetchProducts(productCursor);
+      const edges = result.data.products.edges;
+      edges.forEach(e => allProducts.push(e.node));
+      hasNext = result.data.products.pageInfo.hasNextPage;
+      productCursor = edges.length ? edges[edges.length - 1].cursor : null;
     }
 
-    const response = await fetch(url, {
-      headers: {
-        "X-Shopify-Storefront-Access-Token": API_KEY,
-        "Content-Type": "application/json"
-      }
-    });
-    if (!response.ok) throw new Error(`Failed to fetch ${resource} (status ${response.status})`);
+    // Fetch Pages
+    let allPages = [];
+    let pageCursor = null;
+    hasNext = true;
+    while (hasNext) {
+      const result = await fetchPages(pageCursor);
+      const edges = result.data.pages.edges;
+      edges.forEach(e => allPages.push(e.node));
+      hasNext = result.data.pages.pageInfo.hasNextPage;
+      pageCursor = edges.length ? edges[edges.length - 1].cursor : null;
+    }
 
-    const data = await response.json();
-    const items = data[resource] || [];
+    // You can add collections fetch here similarly
 
-    // Merge items into crawlData
-    crawlData[resource] = crawlData[resource] || { lastIndex: 0, items: [] };
-    crawlData[resource].items = [...crawlData[resource].items, ...items];
-    crawlData[resource].lastIndex = lastIndex + items.length;
-    crawlData[resource].total = data[`${resource}_count`] || crawlData[resource].lastIndex;
+    // Combine and write
+    const crawlData = { products: allProducts, pages: allPages };
+    const filePath = writeData("crawl-data.json", crawlData);
 
-    // Save crawl data
-    fs.writeFileSync(JSON_PATH, JSON.stringify(crawlData, null, 2));
-
-    res.status(200).json({ status: "success", resource, fetched: items.length, lastIndex: crawlData[resource].lastIndex });
+    res.status(200).json({ status: "success", message: "Crawl completed", file: filePath });
   } catch (err) {
-    console.error("Crawl failed:", err);
-    res.status(500).json({ status: "error", message: err.message });
+    console.error("Progressive crawl error:", err);
+    res.status(500).json({ status: "error", message: "Crawl failed", details: err.message });
   }
 }
