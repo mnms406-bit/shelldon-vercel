@@ -1,55 +1,35 @@
+import fs from "fs";
+import path from "path";
+
 export default async function handler(req, res) {
   try {
-    const storeDomain = process.env.SHOPIFY_STORE_DOMAIN; // e.g. myshop.myshopify.com
-    const accessToken = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+    console.log("🚀 Progressive crawl started...");
 
-    async function shopifyQuery(query) {
-      const response = await fetch(`https://${storeDomain}/api/2023-07/graphql.json`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token": accessToken,
-        },
-        body: JSON.stringify({ query })
-      });
-      return response.json();
-    }
+    // Replace this URL with your Shopify Storefront or sitemap URL
+    const targetURL = "https://yourshopifydomain.myshopify.com/collections/all?view=json";
 
-    // Queries
-    const productsQuery = `
-      { products(first: 50) { edges { node { id title description handle } } } }
-    `;
-    const collectionsQuery = `
-      { collections(first: 50) { edges { node { id title description handle } } } }
-    `;
-    const pagesQuery = `
-      { pages(first: 50) { edges { node { id title body handle } } } }
-    `;
+    // Example fetch (you can customize this for your own structure)
+    const response = await fetch(targetURL);
+    if (!response.ok) throw new Error(`Failed to fetch ${targetURL}: ${response.status}`);
+    const crawlData = await response.json();
 
-    // Fetch
-    const [products, collections, pages] = await Promise.all([
-      shopifyQuery(productsQuery),
-      shopifyQuery(collectionsQuery),
-      shopifyQuery(pagesQuery),
-    ]);
+    // ✅ Save crawl data persistently to /public
+    const savePath = path.join(process.cwd(), "public", "crawl-data.json");
+    fs.writeFileSync(savePath, JSON.stringify(crawlData, null, 2));
+    console.log("✅ Crawl data saved to:", savePath);
 
-    // Prepare crawl data
-    const crawlData = {
-      timestamp: new Date().toISOString(),
-      products,
-      collections,
-      pages
-    };
-
-    // Save file into Vercel’s build cache (publicly available)
-    const fs = require("fs");
-    const path = require("path");
-    const filePath = path.join("/tmp", "crawl-data.json"); 
-    fs.writeFileSync(filePath, JSON.stringify(crawlData, null, 2));
-
-    res.status(200).json({ status: "success", file: "/api/get-crawl" });
+    // Return a success response
+    res.status(200).json({
+      status: "success",
+      message: "Progressive crawl completed successfully",
+      data: { file: "/api/get-crawl" }
+    });
   } catch (err) {
-    console.error("Crawl failed:", err);
-    res.status(500).json({ status: "error", message: err.message });
+    console.error("❌ Progressive crawl failed:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Crawl failed",
+      details: err.message
+    });
   }
 }
