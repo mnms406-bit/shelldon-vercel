@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     console.log("🚀 Progressive crawl started...");
 
     // Replace this URL with your Shopify Storefront or sitemap URL
-    const targetURL = "https://yourshopifydomain.myshopify.com/collections/all?view=json";
+    const targetURL = "http://51294e-8f.myshopify.com/collections/all?view=json";
 
     // Example fetch (you can customize this for your own structure)
     const response = await fetch(targetURL);
