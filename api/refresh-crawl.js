@@ -91,3 +91,72 @@ export default async function handler(req, res) {
     res.status(500).json({ status: "error", message: "Crawl failed", details: err.message });
   }
 }
+import fetch from "node-fetch";
+
+async function uploadToGitHub(data) {
+  const repo = process.env.GITHUB_REPO;
+  const file = process.env.GITHUB_FILE || "crawl-data.json";
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!repo || !token) {
+    console.warn("Missing GitHub repo or token");
+    return;
+  }
+
+  const apiUrl = `https://api.github.com/repos/${repo}/contents/${file}`;
+
+  // Get the current file’s SHA (if it exists)
+  const current = await fetch(apiUrl, {
+    headers: { Authorization: `token ${token}` },
+  }).then((r) => (r.ok ? r.json() : null));
+
+  const content = Buffer.from(JSON.stringify(data, null, 2)).toString("base64");
+
+  const body = {
+    message: `Update crawl data ${new Date().toISOString()}`,
+    content,
+    sha: current?.sha,
+  };
+
+  const result = await fetch(apiUrl, {
+    method: "PUT",
+    headers: {
+      Authorization: `token ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!result.ok) {
+    const text = await result.text();
+    console.error("GitHub upload failed:", text);
+  } else {
+    console.log("✅ Crawl data pushed to GitHub");
+  }
+}
+
+// Inside your main handler:
+export default async function handler(req, res) {
+  try {
+    // Run your existing crawl logic...
+    const results = { products, collections, pages };
+
+    // Save locally as before (optional)
+    fs.writeFileSync("/tmp/crawl-data.json", JSON.stringify(results, null, 2));
+
+    // Push to GitHub for permanent storage
+    await uploadToGitHub(results);
+
+    res.status(200).json({
+      status: "success",
+      message: "Crawl completed successfully and uploaded to GitHub",
+      counts: {
+        products: products.length,
+        collections: collections.length,
+        pages: pages.length,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ status: "error", message: "Crawl failed", details: err.message });
+  }
+}
