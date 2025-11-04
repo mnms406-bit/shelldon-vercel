@@ -1,24 +1,26 @@
 export default async function handler(req, res) {
   try {
-    const { GITHUB_TOKEN, GITHUB_REPO, CRAWL_PATH } = process.env;
+    const repo = process.env.GITHUB_REPO;
+    const file = process.env.GITHUB_FILE || "crawl-data.json";
+    const token = process.env.GITHUB_TOKEN;
 
-    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${CRAWL_PATH}`, {
-      headers: {
-        Authorization: `token ${GITHUB_TOKEN}`,
-        Accept: "application/vnd.github+json"
-      }
+    const apiUrl = `https://api.github.com/repos/${repo}/contents/${file}`;
+
+    const response = await fetch(apiUrl, {
+      headers: { Authorization: `token ${token}` },
     });
 
-    if (!response.ok) return res.status(404).json({ error: "No crawl data found yet." });
+    if (!response.ok) {
+      const text = await response.text();
+      return res.status(404).json({ error: "Failed to fetch crawl data", details: text });
+    }
 
-    const file = await response.json();
-    const content = Buffer.from(file.content, "base64").toString("utf-8");
+    const json = await response.json();
+    const decoded = Buffer.from(json.content, "base64").toString("utf8");
 
     res.setHeader("Content-Type", "application/json");
-    res.status(200).send(content);
-
+    res.status(200).send(decoded);
   } catch (err) {
-    console.error("Get crawl failed:", err);
     res.status(500).json({ error: err.message });
   }
 }
