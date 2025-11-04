@@ -1,69 +1,93 @@
 import fetch from "node-fetch";
 
-// Environment variables
-const SHOPIFY_STORE = process.env.SHOPIFY_STORE;
+const SHOPIFY_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN;
 const SHOPIFY_STOREFRONT_API_KEY = process.env.SHOPIFY_STOREFRONT_API_KEY;
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Personal access token
-const GITHUB_REPO = process.env.GITHUB_REPO;   // example: "username/repo"
-const GITHUB_PATH = process.env.GITHUB_PATH || "crawl-data.json"; // file path in repo
+const GITHUB_REPO = process.env.GITHUB_REPO; // e.g., username/repo
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // personal access token
+
+const CHUNK_SIZE = 50; // items per API call
+
+async function fetchShopify(resource, cursor = null) {
+  let url = `https://${SHOPIFY_DOMAIN}/api/2023-10/${resource}.json?limit=${CHUNK_SIZE}`;
+  if (cursor) url += `&page_info=${cursor}`;
+
+  const res = await fetch(url, {
+    headers: {
+      "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_API_KEY,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`[Shopify] Failed to fetch ${resource}: ${res.status} ${res.statusText}`);
+  }
+
+  return res.json();
+}
+
+async function pushToGitHub(filename, content) {
+  const path = `crawl/${filename}`;
+  const base64Content = Buffer.from(JSON.stringify(content, null, 2)).toString("base64");
+
+  const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `token ${GITHUB_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: `Update ${filename} - ${new Date().toISOString()}`,
+      content: base64Content,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`[GitHub] Failed to push ${filename}: ${res.status} ${res.statusText}`);
+  }
+
+  return res.json();
+}
+
+async function crawlResource(resource) {
+  let allItems = [];
+  let cursor = null;
+  let page = 1;
+
+  do {
+    const data = await fetchShopify(resource, cursor);
+    const items = data[resource] || [];
+    allItems.push(...items);
+
+    // check for pagination (Shopify REST may not give cursor, adjust if needed)
+    cursor = data.next_page_info || null;
+    page++;
+  } while (cursor);
+
+  return allItems;
+}
 
 export default async function handler(req, res) {
   try {
-    if (!SHOPIFY_STORE || !SHOPIFY_STOREFRONT_API_KEY || !GITHUB_TOKEN || !GITHUB_REPO) {
-      return res.status(500).json({ status: "error", message: "Missing env vars" });
-    }
+    const products = await crawlResource("products");
+    const collections = await crawlResource("collections");
+    const pages = await crawlResource("pages");
 
-    // Crawl Shopify
-    const endpoints = ["/products.json", "/collections.json", "/pages.json"];
-    const results = {};
+    // push individually to GitHub
+    await pushToGitHub("products.json", products);
+    await pushToGitHub("collections.json", collections);
+    await pushToGitHub("pages.json", pages);
 
-    for (const endpoint of endpoints) {
-      const url = `https://${SHOPIFY_STORE}/api/2023-01${endpoint}?limit=250`;
-      const response = await fetch(url, {
-        headers: {
-          "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_API_KEY,
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Failed to fetch ${endpoint}: ${text}`);
-      }
-      const data = await response.json();
-      results[endpoint.replace(".json", "")] = data;
-    }
-
-    // Push to GitHub
-    const content = Buffer.from(JSON.stringify(results, null, 2)).toString("base64");
-
-    // Check if file exists to get SHA
-    let sha;
-    const getResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_PATH}`, {
-      headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: "application/vnd.github.v3+json" },
+    res.status(200).json({
+      status: "success",
+      counts: {
+        products: products.length,
+        collections: collections.length,
+        pages: pages.length,
+      },
+      timestamp: new Date().toISOString(),
     });
-    if (getResp.ok) {
-      const getData = await getResp.json();
-      sha = getData.sha;
-    }
-
-    const commitResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_PATH}`, {
-      method: "PUT",
-      headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: "application/vnd.github.v3+json" },
-      body: JSON.stringify({
-        message: "Update crawl data",
-        content,
-        sha,
-      }),
-    });
-
-    if (!commitResp.ok) {
-      const text = await commitResp.text();
-      throw new Error(`GitHub push failed: ${text}`);
-    }
-
-    res.status(200).json({ status: "success", message: "Crawl completed and saved to GitHub" });
   } catch (err) {
-    console.error("Refresh crawl failed:", err);
+    console.error("Crawl failed:", err);
     res.status(500).json({ status: "error", message: "Crawl failed", details: err.message });
   }
 }
