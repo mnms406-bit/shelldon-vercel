@@ -1,83 +1,104 @@
-import fetch from "node-fetch";
+// api/refresh-crawl.js
+import fs from "fs";
+import path from "path";
 
 export default async function handler(req, res) {
   try {
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-    const GITHUB_REPO = "yourname/shopify-crawl-data"; // change this to your repo
-    const SHOPIFY_DOMAIN = "51294e-8f.myshopify.com";
-    const SHOPIFY_API_KEY = process.env.SHOPIFY_STOREFRONT_API_KEY;
+    if (req.method !== "GET") {
+      return res.status(405).json({ status: "error", message: "Only GET allowed" });
+    }
 
-    // 1. Fetch products from Shopify Storefront API
-    const query = `
-      {
-        products(first: 100) {
+    const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN; // e.g. 51294e-8f.myshopify.com
+    const SHOPIFY_STOREFRONT_API_KEY = process.env.SHOPIFY_STOREFRONT_API_KEY;
+
+    if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_STOREFRONT_API_KEY) {
+      return res.status(400).json({ status: "error", message: "Missing SHOPIFY env vars" });
+    }
+
+    // GraphQL queries (small, safe)
+    const queries = {
+      products: `{
+        products(first:50) {
           edges {
             node {
               id
               title
               handle
               description
-              images(first: 3) {
-                edges { node { src altText } }
-              }
+              onlineStoreUrl
             }
           }
         }
-      }
-    `;
-
-    const response = await fetch(`https://${SHOPIFY_DOMAIN}/api/2024-01/graphql.json`, {
-      method: "POST",
-      headers: {
-        "X-Shopify-Storefront-Access-Token": SHOPIFY_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ query }),
-    });
-
-    if (!response.ok) throw new Error(`Shopify API error: ${response.status}`);
-
-    const json = await response.json();
-    const data = {
-      products: json.data.products.edges.map((p) => p.node),
-      timestamp: new Date().toISOString(),
+      }`,
+      collections: `{
+        collections(first:50) {
+          edges {
+            node {
+              id
+              title
+              handle
+            }
+          }
+        }
+      }`,
+      pages: `{
+        pages(first:50) {
+          edges {
+            node {
+              id
+              title
+              handle
+              body
+            }
+          }
+        }
+      }`
     };
 
-    // 2. Upload to GitHub
-    const filePath = "crawl-data.json";
-    const getUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}`;
+    const results = {};
 
-    // Check if file exists (to get SHA for updates)
-    const getRes = await fetch(getUrl, {
-      headers: { Authorization: `token ${GITHUB_TOKEN}` },
-    });
+    for (const [key, query] of Object.entries(queries)) {
+      const resp = await fetch(`https://${SHOPIFY_STORE_DOMAIN}/api/2023-07/graphql.json`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_API_KEY,
+        },
+        body: JSON.stringify({ query }),
+      });
 
-    const existing = await getRes.json();
-    const sha = existing?.sha;
+      // if Shopify returns non-OK, capture detailed error text
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.error(`Shopify ${key} fetch failed:`, resp.status, txt);
+        results[key] = { error: `Shopify fetch failed ${resp.status}`, detail: txt };
+        continue; // move on to next query
+      }
 
-    // Upload (create/update)
-    const putRes = await fetch(getUrl, {
-      method: "PUT",
-      headers: {
-        Authorization: `token ${GITHUB_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: "Update crawl data",
-        content: Buffer.from(JSON.stringify(data, null, 2)).toString("base64"),
-        sha,
-      }),
-    });
+      const body = await resp.json();
+      if (body.errors) {
+        console.error(`Shopify ${key} returned errors:`, body.errors);
+      }
+      results[key] = body.data?.[key]?.edges?.map(e => e.node) || [];
+    }
 
-    if (!putRes.ok) throw new Error(`GitHub upload failed: ${putRes.statusText}`);
+    // Save to /tmp (temporary — for immediate get-crawl reads)
+    const filePath = path.join("/tmp", "crawl-data.json");
+    fs.writeFileSync(filePath, JSON.stringify({ timestamp: new Date().toISOString(), results }, null, 2), "utf8");
 
-    res.status(200).json({
+    return res.status(200).json({
       status: "success",
-      message: "Crawl completed and uploaded to GitHub",
-      file: `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${filePath}`,
+      message: "Crawl completed and saved to /tmp",
+      counts: {
+        products: Array.isArray(results.products) ? results.products.length : 0,
+        collections: Array.isArray(results.collections) ? results.collections.length : 0,
+        pages: Array.isArray(results.pages) ? results.pages.length : 0,
+      },
+      timestamp: new Date().toISOString(),
+      file: filePath
     });
   } catch (err) {
-    console.error("Crawl error:", err);
-    res.status(500).json({ status: "error", message: err.message });
+    console.error("refresh-crawl crashed:", err);
+    return res.status(500).json({ status: "error", message: "Crawl failed", details: String(err) });
   }
 }
