@@ -1,82 +1,147 @@
-// api/refresh-crawl.js
-import fs from "fs";
-import path from "path";
-
-let latestCrawl = null; // shared in-memory fallback
+import fetch from "node-fetch";
 
 export default async function handler(req, res) {
   try {
-    if (req.method !== "GET") {
-      return res.status(405).json({ status: "error", message: "Only GET allowed" });
+    const repo = "mnms406-bit/shelldon-vercel";
+    const token = process.env.GITHUB_TOKEN;
+    const shopifyDomain = process.env.SHOPIFY_DOMAIN;
+    const shopifyKey = process.env.SHOPIFY_STOREFRONT_API_KEY;
+
+    if (!token || !repo || !shopifyDomain || !shopifyKey) {
+      return res.status(400).json({ error: "Missing environment variables" });
     }
 
-    const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN;
-    const SHOPIFY_STOREFRONT_API_KEY = process.env.SHOPIFY_STOREFRONT_API_KEY;
-
-    if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_STOREFRONT_API_KEY) {
-      return res.status(400).json({ status: "error", message: "Missing SHOPIFY env vars" });
-    }
-
-    const queries = {
-      products: `{
-        products(first:50) {
-          edges { node { id title handle description onlineStoreUrl } }
-        }
-      }`,
-      collections: `{
-        collections(first:50) {
-          edges { node { id title handle } }
-        }
-      }`,
-      pages: `{
-        pages(first:50) {
-          edges { node { id title handle body } }
-        }
-      }`
-    };
-
-    const results = {};
-
-    for (const [key, query] of Object.entries(queries)) {
-      const resp = await fetch(`https://${SHOPIFY_STORE_DOMAIN}/api/2023-07/graphql.json`, {
+    async function shopifyQuery(query, variables = {}) {
+      const r = await fetch(`https://${shopifyDomain}/api/2023-07/graphql.json`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Shopify-Storefront-Access-Token": SHOPIFY_STOREFRONT_API_KEY,
+          "X-Shopify-Storefront-Access-Token": shopifyKey,
         },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, variables }),
       });
-
-      const body = await resp.json();
-      results[key] = body.data?.[key]?.edges?.map(e => e.node) || [];
+      const json = await r.json();
+      if (json.errors) console.error("Shopify GraphQL errors:", json.errors);
+      return json.data;
     }
 
-    const crawlData = {
-      timestamp: new Date().toISOString(),
-      counts: {
-        products: results.products.length,
-        collections: results.collections.length,
-        pages: results.pages.length,
+    // Helper: Paginate through data
+    async function fetchAll(query, path, extract) {
+      let cursor = null;
+      let items = [];
+      let hasNextPage = true;
+      let chunkCount = 0;
+
+      while (hasNextPage && chunkCount < 5) {
+        const data = await shopifyQuery(query, { cursor });
+        const edges = extract(data);
+        if (!edges) break;
+
+        items.push(...edges.map((e) => e.node));
+        const pageInfo = path.split(".").reduce((a, b) => a[b], data).pageInfo;
+        cursor = edges.length > 0 ? edges[edges.length - 1].cursor : null;
+        hasNextPage = pageInfo.hasNextPage;
+        chunkCount++;
+      }
+      return items;
+    }
+
+    // --- PRODUCTS ---
+    const productQuery = `
+      query getProducts($cursor: String) {
+        products(first: 50, after: $cursor) {
+          pageInfo { hasNextPage }
+          edges {
+            cursor
+            node {
+              id title handle description vendor tags
+              images(first: 5) { edges { node { src altText } } }
+            }
+          }
+        }
+      }`;
+    const products = await fetchAll(productQuery, "products", (d) => d.products.edges);
+
+    // --- COLLECTIONS ---
+    const collectionQuery = `
+      query getCollections($cursor: String) {
+        collections(first: 50, after: $cursor) {
+          pageInfo { hasNextPage }
+          edges {
+            cursor
+            node {
+              id title handle description
+              image { src altText }
+              products(first: 10) { edges { node { title handle id } } }
+            }
+          }
+        }
+      }`;
+    const collections = await fetchAll(collectionQuery, "collections", (d) => d.collections.edges);
+
+    // --- PAGES (Shopify Online Store Pages via metaobjects) ---
+    const pagesQuery = `
+      query getPages($cursor: String) {
+        pages(first: 50, after: $cursor) {
+          pageInfo { hasNextPage }
+          edges {
+            cursor
+            node {
+              id title handle body
+            }
+          }
+        }
+      }`;
+    const pages = await fetchAll(pagesQuery, "pages", (d) => d.pages.edges);
+
+    // 🧩 Combine data
+    const crawlData = JSON.stringify(
+      {
+        timestamp: new Date().toISOString(),
+        counts: {
+          products: products.length,
+          collections: collections.length,
+          pages: pages.length,
+        },
+        products,
+        collections,
+        pages,
       },
-      results
-    };
+      null,
+      2
+    );
 
-    // Save to /tmp (ephemeral)
-    const filePath = path.join("/tmp", "crawl-data.json");
-    fs.writeFileSync(filePath, JSON.stringify(crawlData, null, 2), "utf8");
+    // 🗃️ Commit to GitHub
+    const githubResponse = await fetch(
+      `https://api.github.com/repos/${repo}/contents/crawl-data.json`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: "Full crawl update (products, collections, pages)",
+          content: Buffer.from(crawlData).toString("base64"),
+        }),
+      }
+    );
 
-    // Save to live in-memory cache
-    latestCrawl = crawlData;
+    if (!githubResponse.ok) {
+      throw new Error(`GitHub upload failed: ${githubResponse.statusText}`);
+    }
 
     return res.status(200).json({
       status: "success",
-      message: "Crawl completed successfully",
-      ...crawlData
+      message: "Full crawl completed and pushed to GitHub",
+      summary: {
+        products: products.length,
+        collections: collections.length,
+        pages: pages.length,
+      },
     });
   } catch (err) {
-    console.error("refresh-crawl error:", err);
-    return res.status(500).json({ status: "error", message: "Crawl failed", details: String(err) });
+    console.error("Full crawl error:", err);
+    res.status(500).json({ status: "error", message: err.message });
   }
 }
-
-export { latestCrawl };
