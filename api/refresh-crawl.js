@@ -1,38 +1,99 @@
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  try {
-    // Progressive crawl endpoint
-    const crawlResponse = await fetch("https://your-vercel-domain.vercel.app/api/progressive-crawl", {
-      method: "GET",
-    });
+  const shopDomain = process.env.SHOPIFY_STORE_DOMAIN;
+  const storefrontToken = process.env.SHOPIFY_STOREFRONT_API_KEY;
+  const githubToken = process.env.GITHUB_TOKEN;
+  const repo = "mnms406-bit/shelldon-vercel";
 
-    if (!crawlResponse.ok) {
-      return res.status(500).json({ status: "error", message: "Progressive crawl failed", details: await crawlResponse.text() });
+  if (!shopDomain || !storefrontToken || !githubToken) {
+    return res.status(400).json({ status: "error", message: "Missing environment variables." });
+  }
+
+  try {
+    const crawlData = {
+      timestamp: new Date().toISOString(),
+      products: [],
+      collections: [],
+      pages: [],
+    };
+
+    // ---- PRODUCTS ----
+    let page = 1;
+    let hasMoreProducts = true;
+    while (hasMoreProducts) {
+      const prodRes = await fetch(`https://${shopDomain}/products.json?limit=50&page=${page}`, {
+        headers: {
+          "X-Shopify-Storefront-Access-Token": storefrontToken,
+          "Content-Type": "application/json",
+        },
+      });
+      const prodData = await prodRes.json();
+      if (!prodData.products || prodData.products.length === 0) {
+        hasMoreProducts = false;
+      } else {
+        crawlData.products.push(...prodData.products);
+        page++;
+      }
     }
 
-    const crawlData = await crawlResponse.json();
+    // ---- COLLECTIONS ----
+    page = 1;
+    let hasMoreCollections = true;
+    while (hasMoreCollections) {
+      const colRes = await fetch(`https://${shopDomain}/collections.json?limit=50&page=${page}`, {
+        headers: {
+          "X-Shopify-Storefront-Access-Token": storefrontToken,
+          "Content-Type": "application/json",
+        },
+      });
+      const colData = await colRes.json();
+      if (!colData.collections || colData.collections.length === 0) {
+        hasMoreCollections = false;
+      } else {
+        crawlData.collections.push(...colData.collections);
+        page++;
+      }
+    }
 
-    // Save to GitHub
-    const githubResponse = await fetch(`https://api.github.com/repos/mnms406-bit/shelldon-vercel/contents/crawl-data.json`, {
+    // ---- PAGES ----
+    page = 1;
+    let hasMorePages = true;
+    while (hasMorePages) {
+      const pageRes = await fetch(`https://${shopDomain}/pages.json?limit=50&page=${page}`, {
+        headers: {
+          "X-Shopify-Storefront-Access-Token": storefrontToken,
+          "Content-Type": "application/json",
+        },
+      });
+      const pageData = await pageRes.json();
+      if (!pageData.pages || pageData.pages.length === 0) {
+        hasMorePages = false;
+      } else {
+        crawlData.pages.push(...pageData.pages);
+        page++;
+      }
+    }
+
+    // ---- SAVE TO GITHUB ----
+    const path = "crawl-data.json";
+    const commitMessage = `Full-site crawl update - ${crawlData.timestamp}`;
+
+    await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
       method: "PUT",
       headers: {
-        "Authorization": `token ${process.env.GITHUB_TOKEN}`,
+        Authorization: `token ${githubToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        message: `Update crawl at ${new Date().toISOString()}`,
+        message: commitMessage,
         content: Buffer.from(JSON.stringify(crawlData, null, 2)).toString("base64"),
       }),
     });
 
-    if (!githubResponse.ok) {
-      return res.status(500).json({ status: "error", message: "Failed to save crawl to GitHub", details: await githubResponse.text() });
-    }
-
-    res.status(200).json({ status: "success", message: "Crawl completed and saved to GitHub", data: crawlData });
+    res.status(200).json({ status: "success", message: "Full-site crawl completed and saved to GitHub." });
   } catch (err) {
-    console.error("Refresh crawl failed:", err);
-    res.status(500).json({ status: "error", message: "Refresh crawl failed", details: err.message });
+    console.error("Full-site crawl failed:", err);
+    res.status(500).json({ status: "error", message: "Crawl failed", details: err.message });
   }
 }
