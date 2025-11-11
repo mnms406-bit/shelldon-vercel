@@ -1,28 +1,28 @@
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
-  const githubToken = process.env.GITHUB_TOKEN;
-  const repo = "mnms406-bit/shelldon-vercel";
-  const path = "crawl-data.json";
-
-  if (!githubToken) {
-    return res.status(400).json({ status: "error", message: "Missing GitHub token." });
-  }
-
   try {
-    const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-      headers: { Authorization: `token ${githubToken}` },
-    });
+    const githubResponse = await fetch(
+      "https://api.github.com/repos/mnms406-bit/shelldon-vercel/contents/crawl-data.json",
+      {
+        headers: {
+          Authorization: `token ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`,
+        },
+      }
+    );
 
-    const data = await response.json();
-    if (!data.content) {
-      return res.status(404).json({ status: "error", message: "No crawl data found yet." });
+    if (!githubResponse.ok) {
+      return res.status(404).json({
+        error: "Failed to fetch crawl data from GitHub",
+        details: await githubResponse.text(),
+      });
     }
 
-    const decoded = Buffer.from(data.content, "base64").toString("utf-8");
-    res.status(200).json(JSON.parse(decoded));
+    const file = await githubResponse.json();
+    const decoded = Buffer.from(file.content, "base64").toString("utf8");
+    const json = JSON.parse(decoded);
+
+    res.status(200).json(json);
   } catch (err) {
     console.error("Get crawl failed:", err);
-    res.status(500).json({ status: "error", message: err.message });
+    res.status(500).json({ error: err.message });
   }
 }
