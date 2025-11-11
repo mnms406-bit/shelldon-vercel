@@ -1,95 +1,145 @@
-import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
 
 export default async function handler(req, res) {
+  const shopDomain = process.env.SHOPIFY_STORE_DOMAIN;
+  const storefrontToken = process.env.SHOPIFY_STOREFRONT_API_KEY;
+
+  if (!shopDomain || !storefrontToken) {
+    return res.status(400).json({
+      status: "error",
+      message: "Missing Shopify environment variables.",
+    });
+  }
+
+  const crawlData = {
+    products: [],
+    collections: [],
+    pages: [],
+    timestamp: new Date().toISOString(),
+  };
+
   try {
-    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN;
-    const storefrontToken = process.env.SHOPIFY_STOREFRONT_API_KEY;
-
-    if (!shopDomain || !storefrontToken) {
-      return res.status(400).json({
-        status: "error",
-        message: "Missing Shopify environment variables.",
-      });
-    }
-
-    const shopUrl = `https://${shopDomain}/api/2023-07/graphql.json`;
-
-    const query = `
+    // --- Fetch Products ---
+    const productsRes = await fetch(
+      `https://${shopDomain}/api/2023-07/graphql.json`,
       {
-        products(first: 100) {
-          edges {
-            node {
-              id
-              title
-              handle
-              description
-              images(first: 5) {
-                edges {
-                  node {
-                    url
+        method: "POST",
+        headers: {
+          "X-Shopify-Storefront-Access-Token": storefrontToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `{
+            products(first: 250) {
+              edges {
+                node {
+                  id
+                  title
+                  handle
+                  description
+                  variants(first: 10) {
+                    edges {
+                      node {
+                        id
+                        title
+                        price
+                      }
+                    }
                   }
                 }
               }
             }
-          }
-        }
-        collections(first: 20) {
-          edges {
-            node {
-              id
-              title
-              handle
-            }
-          }
-        }
-        pages(first: 10) {
-          edges {
-            node {
-              id
-              title
-              handle
-            }
-          }
-        }
+          }`,
+        }),
       }
-    `;
+    );
 
-    const response = await fetch(shopUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Storefront-Access-Token": storefrontToken,
-      },
-      body: JSON.stringify({ query }),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Shopify API error: ${text}`);
+    const productsJson = await productsRes.json();
+    if (productsJson.errors) {
+      throw new Error(JSON.stringify(productsJson.errors));
     }
+    crawlData.products = productsJson.data.products.edges.map(e => e.node);
 
-    const data = await response.json();
+    // --- Fetch Collections ---
+    const collectionsRes = await fetch(
+      `https://${shopDomain}/api/2023-07/graphql.json`,
+      {
+        method: "POST",
+        headers: {
+          "X-Shopify-Storefront-Access-Token": storefrontToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `{
+            collections(first: 50) {
+              edges {
+                node {
+                  id
+                  title
+                  handle
+                }
+              }
+            }
+          }`,
+        }),
+      }
+    );
+    const collectionsJson = await collectionsRes.json();
+    if (collectionsJson.errors) {
+      throw new Error(JSON.stringify(collectionsJson.errors));
+    }
+    crawlData.collections = collectionsJson.data.collections.edges.map(e => e.node);
 
-    // Save crawl data to temporary file
+    // --- Fetch Pages ---
+    const pagesRes = await fetch(
+      `https://${shopDomain}/api/2023-07/graphql.json`,
+      {
+        method: "POST",
+        headers: {
+          "X-Shopify-Storefront-Access-Token": storefrontToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: `{
+            pages(first: 50) {
+              edges {
+                node {
+                  id
+                  title
+                  handle
+                  body
+                }
+              }
+            }
+          }`,
+        }),
+      }
+    );
+    const pagesJson = await pagesRes.json();
+    if (pagesJson.errors) {
+      throw new Error(JSON.stringify(pagesJson.errors));
+    }
+    crawlData.pages = pagesJson.data.pages.edges.map(e => e.node);
+
+    // --- Save Crawl Data ---
     const filePath = path.join("/tmp", "crawl-data.json");
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+    fs.writeFileSync(filePath, JSON.stringify(crawlData, null, 2));
 
     return res.status(200).json({
       status: "success",
       message: "Crawl completed successfully",
       counts: {
-        products: data.data.products.edges.length,
-        collections: data.data.collections.edges.length,
-        pages: data.data.pages.edges.length,
+        products: crawlData.products.length,
+        collections: crawlData.collections.length,
+        pages: crawlData.pages.length,
       },
-      timestamp: new Date().toISOString(),
+      timestamp: crawlData.timestamp,
+      file: filePath,
     });
-
   } catch (err) {
     console.error("Crawl failed:", err);
-    res.status(500).json({
+    return res.status(500).json({
       status: "error",
       message: "Crawl failed",
       details: err.message,
