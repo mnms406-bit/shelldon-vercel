@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import fetch from "node-fetch";
 
 export default async function handler(req, res) {
   const shopDomain = process.env.SHOPIFY_STORE_DOMAIN;
@@ -12,7 +13,27 @@ export default async function handler(req, res) {
     });
   }
 
-  const crawlData = {
+  const endpoint = `https://${shopDomain}/api/2023-07/graphql.json`;
+
+  // GraphQL query for products, collections, pages
+  const query = `
+    query getProductsCollectionsPages($productCursor: String, $collectionCursor: String, $pageCursor: String) {
+      products(first: 50, after: $productCursor) {
+        edges { node { id title handle description onlineStoreUrl createdAt updatedAt tags variants(first:10) { edges { node { id title sku availableForSale price { amount currencyCode } compareAtPrice { amount currencyCode } } } } images(first:10) { edges { node { url altText } } } } }
+        pageInfo { hasNextPage endCursor }
+      }
+      collections(first: 20, after: $collectionCursor) {
+        edges { node { id title handle description updatedAt products(first:10) { edges { node { id title handle } } } } }
+        pageInfo { hasNextPage endCursor }
+      }
+      pages(first: 20, after: $pageCursor) {
+        edges { node { id title handle body createdAt updatedAt } }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  `;
+
+  let crawlData = {
     products: [],
     collections: [],
     pages: [],
@@ -20,129 +41,52 @@ export default async function handler(req, res) {
   };
 
   try {
-    // --- Fetch Products ---
-    const productsRes = await fetch(
-      `https://${shopDomain}/api/2023-07/graphql.json`,
-      {
+    let productCursor = null;
+    let collectionCursor = null;
+    let pageCursor = null;
+    let hasMore = true;
+
+    while (hasMore) {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "X-Shopify-Storefront-Access-Token": storefrontToken,
           "Content-Type": "application/json",
+          "X-Shopify-Storefront-Access-Token": storefrontToken,
         },
         body: JSON.stringify({
-          query: `{
-            products(first: 250) {
-              edges {
-                node {
-                  id
-                  title
-                  handle
-                  description
-                  variants(first: 10) {
-                    edges {
-                      node {
-                        id
-                        title
-                        price
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }`,
+          query,
+          variables: { productCursor, collectionCursor, pageCursor },
         }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        return res.status(response.status).json({ status: "error", message: text });
       }
-    );
 
-    const productsJson = await productsRes.json();
-    if (productsJson.errors) {
-      throw new Error(JSON.stringify(productsJson.errors));
+      const { data, errors } = await response.json();
+      if (errors) return res.status(500).json({ status: "error", message: errors });
+
+      // Append results
+      crawlData.products.push(...data.products.edges.map(e => e.node));
+      crawlData.collections.push(...data.collections.edges.map(e => e.node));
+      crawlData.pages.push(...data.pages.edges.map(e => e.node));
+
+      // Update cursors
+      productCursor = data.products.pageInfo.hasNextPage ? data.products.pageInfo.endCursor : null;
+      collectionCursor = data.collections.pageInfo.hasNextPage ? data.collections.pageInfo.endCursor : null;
+      pageCursor = data.pages.pageInfo.hasNextPage ? data.pages.pageInfo.endCursor : null;
+
+      hasMore = productCursor || collectionCursor || pageCursor;
     }
-    crawlData.products = productsJson.data.products.edges.map(e => e.node);
 
-    // --- Fetch Collections ---
-    const collectionsRes = await fetch(
-      `https://${shopDomain}/api/2023-07/graphql.json`,
-      {
-        method: "POST",
-        headers: {
-          "X-Shopify-Storefront-Access-Token": storefrontToken,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: `{
-            collections(first: 50) {
-              edges {
-                node {
-                  id
-                  title
-                  handle
-                }
-              }
-            }
-          }`,
-        }),
-      }
-    );
-    const collectionsJson = await collectionsRes.json();
-    if (collectionsJson.errors) {
-      throw new Error(JSON.stringify(collectionsJson.errors));
-    }
-    crawlData.collections = collectionsJson.data.collections.edges.map(e => e.node);
-
-    // --- Fetch Pages ---
-    const pagesRes = await fetch(
-      `https://${shopDomain}/api/2023-07/graphql.json`,
-      {
-        method: "POST",
-        headers: {
-          "X-Shopify-Storefront-Access-Token": storefrontToken,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: `{
-            pages(first: 50) {
-              edges {
-                node {
-                  id
-                  title
-                  handle
-                  body
-                }
-              }
-            }
-          }`,
-        }),
-      }
-    );
-    const pagesJson = await pagesRes.json();
-    if (pagesJson.errors) {
-      throw new Error(JSON.stringify(pagesJson.errors));
-    }
-    crawlData.pages = pagesJson.data.pages.edges.map(e => e.node);
-
-    // --- Save Crawl Data ---
+    // Save to tmp folder for get crawl
     const filePath = path.join("/tmp", "crawl-data.json");
     fs.writeFileSync(filePath, JSON.stringify(crawlData, null, 2));
 
-    return res.status(200).json({
-      status: "success",
-      message: "Crawl completed successfully",
-      counts: {
-        products: crawlData.products.length,
-        collections: crawlData.collections.length,
-        pages: crawlData.pages.length,
-      },
-      timestamp: crawlData.timestamp,
-      file: filePath,
-    });
+    res.status(200).json({ status: "success", message: "Crawl completed", counts: { products: crawlData.products.length, collections: crawlData.collections.length, pages: crawlData.pages.length }, timestamp: crawlData.timestamp });
   } catch (err) {
-    console.error("Crawl failed:", err);
-    return res.status(500).json({
-      status: "error",
-      message: "Crawl failed",
-      details: err.message,
-    });
+    console.error("Refresh crawl failed:", err);
+    res.status(500).json({ status: "error", message: "Crawl failed", details: err.message });
   }
 }
