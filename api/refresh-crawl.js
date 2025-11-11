@@ -1,57 +1,98 @@
+import fetch from "node-fetch";
+import fs from "fs";
+import path from "path";
+
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ status: "error", message: "Method not allowed" });
-  }
-
   try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN;
+    const storefrontToken = process.env.SHOPIFY_STOREFRONT_API_KEY;
 
-    // Call your working progressive-crawl endpoint
-    const crawlResponse = await fetch(`${baseUrl}/api/progressive-crawl`);
-    const crawlData = await crawlResponse.json();
-
-    if (!crawlData || crawlData.status !== "success") {
-      return res.status(500).json({
+    if (!shopDomain || !storefrontToken) {
+      return res.status(400).json({
         status: "error",
-        message: "Crawl failed",
-        details: crawlData,
+        message: "Missing Shopify environment variables.",
       });
     }
 
-    // Upload results to GitHub
-    const githubResponse = await fetch(
-      "https://api.github.com/repos/mnms406-bit/shelldon-vercel/contents/crawl-data.json",
+    const shopUrl = `https://${shopDomain}/api/2023-07/graphql.json`;
+
+    const query = `
       {
-        method: "PUT",
-        headers: {
-          Authorization: `token ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: `Auto-update crawl-data.json at ${new Date().toISOString()}`,
-          content: Buffer.from(JSON.stringify(crawlData, null, 2)).toString("base64"),
-        }),
+        products(first: 100) {
+          edges {
+            node {
+              id
+              title
+              handle
+              description
+              images(first: 5) {
+                edges {
+                  node {
+                    url
+                  }
+                }
+              }
+            }
+          }
+        }
+        collections(first: 20) {
+          edges {
+            node {
+              id
+              title
+              handle
+            }
+          }
+        }
+        pages(first: 10) {
+          edges {
+            node {
+              id
+              title
+              handle
+            }
+          }
+        }
       }
-    );
+    `;
 
-    if (!githubResponse.ok) {
-      const err = await githubResponse.text();
-      return res.status(500).json({
-        status: "error",
-        message: "GitHub upload failed",
-        details: err,
-      });
+    const response = await fetch(shopUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Storefront-Access-Token": storefrontToken,
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Shopify API error: ${text}`);
     }
 
-    res.status(200).json({
+    const data = await response.json();
+
+    // Save crawl data to temporary file
+    const filePath = path.join("/tmp", "crawl-data.json");
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+
+    return res.status(200).json({
       status: "success",
-      message: "Crawl completed and uploaded to GitHub",
+      message: "Crawl completed successfully",
+      counts: {
+        products: data.data.products.edges.length,
+        collections: data.data.collections.edges.length,
+        pages: data.data.pages.edges.length,
+      },
       timestamp: new Date().toISOString(),
     });
+
   } catch (err) {
-    console.error("Refresh crawl failed:", err);
-    res.status(500).json({ status: "error", message: err.message });
+    console.error("Crawl failed:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Crawl failed",
+      details: err.message,
+    });
   }
 }
