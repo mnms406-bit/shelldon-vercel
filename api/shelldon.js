@@ -7,8 +7,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { message } = req.query;
-  if (!message)
-    return res.status(400).json({ reply: "Please provide a message." });
+  if (!message) return res.status(400).json({ reply: "Please provide a message." });
 
   try {
     const crawlResponse = await fetch(
@@ -16,37 +15,25 @@ export default async function handler(req, res) {
     );
     const crawlData = await crawlResponse.json();
 
-    // Helper to limit text length
-    const truncate = (str, max = 150) => str?.slice(0, max) || "No description";
+    // Build context including prices
+    const context = `
+PRODUCTS:
+${crawlData.products?.map(p => {
+  const variants = p.variants?.map(v => {
+    if (v?.priceV2?.amount) {
+      return `${v.title}: $${parseFloat(v.priceV2.amount).toFixed(2)} USD`;
+    }
+    return v.title ? `${v.title}: Price unavailable` : null;
+  }).filter(Boolean).join(", ");
+  return `• ${p.title}: ${p.description?.slice(0,150) || "No description"} | Variants: ${variants}`;
+}).join("\n")}
 
-    const contextProducts = crawlData.products
-      ?.map(p => {
-        const variantsText = p.variants?.slice(0, 5) // Limit to first 5 variants
-          .map(v => {
-            if (v?.priceV2?.amount && v?.priceV2?.currencyCode) {
-              const amount = parseFloat(v.priceV2.amount).toFixed(2);
-              return `${v.title}: $${amount} ${v.priceV2.currencyCode}`;
-            }
-            return v.title ? `${v.title}: Price unavailable` : null;
-          })
-          .filter(Boolean)
-          .join(", ") || "No variants";
+COLLECTIONS:
+${crawlData.collections?.map(c => `• ${c.title}: ${c.description?.slice(0,150) || "No description"}`).join("\n")}
 
-        return `• ${p.title}: ${truncate(p.description)} | Variants: ${variantsText}`;
-      })
-      .join("\n");
-
-    const contextCollections = crawlData.collections
-      ?.map(c => `• ${c.title}: ${truncate(c.description)}`)
-      .join("\n");
-
-    const contextPages = crawlData.pages
-      ?.map(pg => `• ${pg.title}: ${truncate(pg.body)}`)
-      .join("\n");
-
-    // Combine context and trim to ~6000 characters max
-    let context = `PRODUCTS:\n${contextProducts}\n\nCOLLECTIONS:\n${contextCollections}\n\nPAGES:\n${contextPages}`;
-    if (context.length > 6000) context = context.slice(0, 6000) + "\n...[truncated]";
+PAGES:
+${crawlData.pages?.map(pg => `• ${pg.title}: ${pg.body?.slice(0,150) || "No description"}`).join("\n")}
+`;
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -57,16 +44,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          {
-            role: "system",
-            content: `
-              You are Shelldon, the virtual assistant for the Shopify store at https://enajif.com.
-              Use the following crawl data as your source of truth for product, page, pricing, and collection information.
-              Be friendly, concise, and helpful. Provide details on tracking, shipping, contact us, and any relevant webpage info.
-              Context:
-              ${context}
-            `,
-          },
+          { role: "system", content: `You are Shelldon, the virtual assistant for https://enajif.com. Use this crawl data for all answers:\n${context}` },
           { role: "user", content: message },
         ],
         temperature: 0.7,
@@ -75,13 +53,11 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      "Shelldon couldn’t get a response right now.";
-
+    const reply = data?.choices?.[0]?.message?.content || "Shelldon couldn’t get a response right now.";
     res.status(200).json({ reply });
+
   } catch (err) {
-    console.error("Shelldon serverless error:", err);
+    console.error("Shelldon error:", err);
     res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
   }
 }
