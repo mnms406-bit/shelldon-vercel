@@ -98,11 +98,11 @@ export default async function handler(req, res) {
       }
     `;
 
-    // Crawl everything in chunks
-    const [products, collections, pages] = await Promise.all([
+     const [products, collections, pages, prices] = await Promise.all([
       fetchAll(productsQuery, "products"),
       fetchAll(collectionsQuery, "collections"),
       fetchAll(pagesQuery, "pages"),
+      fetchAll(pagesQuery, "prices"),
     ]);
 
     const crawlData = {
