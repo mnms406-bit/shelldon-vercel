@@ -16,26 +16,37 @@ export default async function handler(req, res) {
     const crawlResponse = await fetch(
       "https://raw.githubusercontent.com/mnms406-bit/shelldon-vercel/main/data/crawl-data.json"
     );
+    if (!crawlResponse.ok) throw new Error("Failed to fetch crawl data from GitHub");
+
     const crawlData = await crawlResponse.json();
 
     // Combine all relevant data into a condensed context string
+    const maxItems = 30; // limit items to avoid serverless timeout
     const context = `
       PRODUCTS:
       ${crawlData.products
-        ?.map(p => {
-          const prices = p.variants?.map(v => v.priceV2 ? `$${v.priceV2.amount} ${v.priceV2.currencyCode}` : "N/A").join(", ") || "N/A";
-          return `• ${p.title}: ${p.description?.slice(0, 150) || "No description"} | Prices: ${prices}`;
+        ?.slice(0, maxItems)
+        .map(p => {
+          const prices = p.variants?.map(v => {
+            if (v.priceV2?.amount && v.priceV2?.currencyCode) {
+              return `${Number(v.priceV2.amount).toFixed(2)} ${v.priceV2.currencyCode}`;
+            }
+            return "N/A";
+          }).join(", ");
+          return `• ${p.title}: ${p.description?.slice(0, 150) || "No description"} | Price(s): ${prices}`;
         })
         .join("\n")}
 
       COLLECTIONS:
       ${crawlData.collections
-        ?.map(c => `• ${c.title}: ${c.description?.slice(0, 150) || "No description"}`)
+        ?.slice(0, maxItems)
+        .map(c => `• ${c.title}: ${c.description?.slice(0, 150) || "No description"}`)
         .join("\n")}
 
       PAGES:
       ${crawlData.pages
-        ?.map(pg => `• ${pg.title}: ${pg.body?.slice(0, 150) || "No description"}`)
+        ?.slice(0, maxItems)
+        .map(pg => `• ${pg.title}: ${pg.body?.slice(0, 150) || "No description"}`)
         .join("\n")}
     `;
 
@@ -54,7 +65,7 @@ export default async function handler(req, res) {
             content: `
               You are Shelldon, the virtual assistant for the Shopify store at https://enajif.com.
               Use the following crawl data as your source of truth for product, page, pricing, and collection information.
-              Be friendly, concise, and helpful and provide information on tracking, shipping, contact us and anything you find from the webpage
+              Be friendly, concise, and helpful and provide information on tracking, shipping, contact us, and anything you find from the webpage.
               Context:
               ${context}
             `,
@@ -74,8 +85,6 @@ export default async function handler(req, res) {
     res.status(200).json({ reply });
   } catch (err) {
     console.error("Shelldon serverless error:", err);
-    res
-      .status(200)
-      .json({ reply: "Shelldon couldn’t get a response right now." });
+    res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
   }
 }
