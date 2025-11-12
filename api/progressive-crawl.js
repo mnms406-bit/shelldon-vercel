@@ -97,7 +97,24 @@ export default async function handler(req, res) {
         }
       }
     `;
-
+    
+const pagesQuery = `
+      {
+        prices(first: 50, after: $AFTER) {
+          pageInfo { hasNextPage }
+          edges {
+            cursor
+            node {
+              id
+              title
+              handle
+              body
+            }
+          }
+        }
+      }
+    `;
+    
      const [products, collections, pages, prices] = await Promise.all([
       fetchAll(productsQuery, "products"),
       fetchAll(collectionsQuery, "collections"),
