@@ -49,7 +49,7 @@ export default async function handler(req, res) {
   try {
     const productsQuery = `
       {
-        products(first: 50, after: $AFTER) {
+ products(first: 50, after: $AFTER) {
           pageInfo { hasNextPage }
           edges {
             cursor
@@ -60,12 +60,20 @@ export default async function handler(req, res) {
               description
               onlineStoreUrl
               featuredImage { url altText }
+              variants(first: 10) {
+                edges {
+                  node {
+                    id
+                    title
+                    priceV2 { amount currencyCode }
+                  }
+                }
+              }
             }
           }
         }
       }
     `;
-
     const collectionsQuery = `
       {
         collections(first: 50, after: $AFTER) {
