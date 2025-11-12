@@ -100,6 +100,23 @@ export default async function handler(req, res) {
       }
     `;
 
+        const collectionsQuery = `
+      {
+        prices(first: 50, after: $AFTER) {
+          pageInfo { hasNextPage }
+          edges {
+            cursor
+            node {
+              id
+              title
+              handle
+              description
+            }
+          }
+        }
+      }
+    `;
+
     // Crawl everything
     const [products, collections, pages, prices] = await Promise.all([
       fetchAll(productsQuery, "products"),
