@@ -11,36 +11,31 @@ export default async function handler(req, res) {
     return res.status(400).json({ reply: "Please provide a message." });
 
   try {
-    // Fetch the crawl data from GitHub
+    // 🧠 Fetch the crawl data from GitHub
     const crawlResponse = await fetch(
       "https://raw.githubusercontent.com/mnms406-bit/shelldon-vercel/main/data/crawl-data.json"
     );
     const crawlData = await crawlResponse.json();
 
-    // Convert crawl into a structured context including variants and prices
-    const context = crawlData.products?.map(p => {
-      const variants = p.variants?.map(v => {
-        const price = v.priceV2 ? `$${parseFloat(v.priceV2.amount).toFixed(2)} ${v.priceV2.currencyCode}` : "N/A";
-        return `• Variant: ${v.title} — Price: ${price}`;
-      }).join("\n") || "• No variants";
-      return `Product: ${p.title}\nDescription: ${p.description || "No description"}\n${variants}`;
-    }).join("\n\n") || "No products available.";
-
-    const collectionsContext = crawlData.collections?.map(c => `• ${c.title}: ${c.description || "No description"}`).join("\n") || "No collections.";
-    const pagesContext = crawlData.pages?.map(pg => `• ${pg.title}: ${pg.body || "No description"}`).join("\n") || "No pages.";
-
-    const fullContext = `
+    // Combine all relevant data into a condensed context string
+    const context = `
 PRODUCTS:
-${context}
+${crawlData.products?.map(p => {
+  const variants = p.variants?.map(v => {
+    const price = v.priceV2 ? `$${parseFloat(v.priceV2.amount).toFixed(2)} ${v.priceV2.currencyCode}` : "N/A";
+    return `• ${v.title} — Price: ${price}`;
+  }).join("\n") || "• No variants";
+  return `• ${p.title}: ${p.description?.slice(0, 150) || "No description"}\n${variants}`;
+}).join("\n\n")}
 
 COLLECTIONS:
-${collectionsContext}
+${crawlData.collections?.map(c => `• ${c.title}: ${c.description?.slice(0, 150) || "No description"}`).join("\n")}
 
 PAGES:
-${pagesContext}
-    `;
+${crawlData.pages?.map(pg => `• ${pg.title}: ${pg.body?.slice(0, 150) || "No description"}`).join("\n")}
+`;
 
-    // Send to OpenAI
+    // 🔮 Send the crawl data as context to OpenAI
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -57,7 +52,7 @@ You are Shelldon, the virtual assistant for https://enajif.com.
 Use the following crawl data as your source of truth for product, page, pricing, and collection information.
 Always provide prices nicely formatted in USD.
 Context:
-${fullContext}
+${context}
             `,
           },
           { role: "user", content: message },
@@ -68,11 +63,15 @@ ${fullContext}
     });
 
     const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content || "Shelldon couldn’t get a response right now.";
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "Shelldon couldn’t get a response right now.";
 
     res.status(200).json({ reply });
   } catch (err) {
     console.error("Shelldon serverless error:", err);
-    res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
+    res
+      .status(200)
+      .json({ reply: "Shelldon couldn’t get a response right now." });
   }
-};
+}
