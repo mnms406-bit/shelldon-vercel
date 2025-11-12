@@ -23,11 +23,8 @@ export default async function handler(req, res) {
       PRODUCTS:
       ${crawlData.products
         ?.map(p => {
-          // Add MoneyV2 pricing in USD
-          const prices = p.variants
-            ?.map(v => v.priceV2 ? `$${parseFloat(v.priceV2.amount).toFixed(2)} ${v.priceV2.currencyCode}` : "N/A")
-            .join(", ");
-          return `• ${p.title}: ${p.description?.slice(0, 150) || "No description"} | Prices: ${prices || "N/A"}`;
+          const prices = p.variants?.map(v => v.priceV2 ? `$${v.priceV2.amount} ${v.priceV2.currencyCode}` : "N/A").join(", ") || "N/A";
+          return `• ${p.title}: ${p.description?.slice(0, 150) || "No description"} | Prices: ${prices}`;
         })
         .join("\n")}
 
