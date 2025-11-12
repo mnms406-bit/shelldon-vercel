@@ -18,17 +18,19 @@ export default async function handler(req, res) {
     );
     const crawlData = await crawlResponse.json();
 
-    // Combine all relevant data into a condensed context string, now with pricing
+    // Combine all relevant data into a condensed context string, now including pricing
     const context = `
       PRODUCTS:
       ${crawlData.products
         ?.map(p => {
-          const prices = p.variants?.map(v => v.priceV2?.amount
-            ? `$${Number(v.priceV2.amount).toFixed(2)}`
-            : "N/A"
-          ).join(", ") || "N/A";
+          const prices = p.variants?.map(v => {
+            if (!v.priceV2?.amount) return "N/A";
+            return v.title
+              ? `${v.title}: $${Number(v.priceV2.amount).toFixed(2)}`
+              : `$${Number(v.priceV2.amount).toFixed(2)}`;
+          }).join(", ") || "N/A";
 
-          return `• ${p.title}: ${p.description?.slice(0, 150) || "No description"} | Price(s): ${prices}`;
+          return `• ${p.title}: ${p.description?.slice(0, 150) || "No description"} | Price: ${prices}`;
         })
         .join("\n")}
 
@@ -58,7 +60,7 @@ export default async function handler(req, res) {
             content: `
               You are Shelldon, the virtual assistant for the Shopify store at https://enajif.com.
               Use the following crawl data as your source of truth for product, page, pricing, and collection information.
-              Be friendly, concise, and helpful and provide information on tracking, shipping, contact us and anything you find from the webpage
+              Be friendly, concise, and helpful and provide information on tracking, shipping, contact us and anything you find from the webpage.
               Context:
               ${context}
             `,
