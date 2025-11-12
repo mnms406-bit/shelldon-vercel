@@ -1,5 +1,6 @@
 // api/shelldon.js
 export default async function handler(req, res) {
+  // Allow frontend domain
   res.setHeader('Access-Control-Allow-Origin', 'https://enajif.com');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -17,23 +18,31 @@ export default async function handler(req, res) {
     );
     const crawlData = await crawlResponse.json();
 
-    // Combine all relevant data into a condensed context string
+    // Combine all relevant data into a condensed context string, adding USD prices
     const context = `
-PRODUCTS:
-${crawlData.products?.map(p => {
-  const variants = p.variants?.map(v => {
-    const price = v.priceV2 ? `$${parseFloat(v.priceV2.amount).toFixed(2)} ${v.priceV2.currencyCode}` : "N/A";
-    return `• ${v.title} — Price: ${price}`;
-  }).join("\n") || "• No variants";
-  return `• ${p.title}: ${p.description?.slice(0, 150) || "No description"}\n${variants}`;
-}).join("\n\n")}
+      PRODUCTS:
+      ${crawlData.products
+        ?.map(p => {
+          const variants = (p.variants || [])
+            .map(v => {
+              if (!v.priceV2) return `${v.title} — Price: N/A`;
+              return `${v.title} — Price: $${parseFloat(v.priceV2.amount).toFixed(2)} ${v.priceV2.currencyCode}`;
+            })
+            .join("; ");
+          return `• ${p.title}: ${p.description?.slice(0, 150) || "No description"} | ${variants}`;
+        })
+        .join("\n")}
 
-COLLECTIONS:
-${crawlData.collections?.map(c => `• ${c.title}: ${c.description?.slice(0, 150) || "No description"}`).join("\n")}
+      COLLECTIONS:
+      ${crawlData.collections
+        ?.map(c => `• ${c.title}: ${c.description?.slice(0, 150) || "No description"}`)
+        .join("\n")}
 
-PAGES:
-${crawlData.pages?.map(pg => `• ${pg.title}: ${pg.body?.slice(0, 150) || "No description"}`).join("\n")}
-`;
+      PAGES:
+      ${crawlData.pages
+        ?.map(pg => `• ${pg.title}: ${pg.body?.slice(0, 150) || "No description"}`)
+        .join("\n")}
+    `;
 
     // 🔮 Send the crawl data as context to OpenAI
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -48,11 +57,11 @@ ${crawlData.pages?.map(pg => `• ${pg.title}: ${pg.body?.slice(0, 150) || "No d
           {
             role: "system",
             content: `
-You are Shelldon, the virtual assistant for https://enajif.com.
-Use the following crawl data as your source of truth for product, page, pricing, and collection information.
-Always provide prices nicely formatted in USD.
-Context:
-${context}
+              You are Shelldon, the virtual assistant for the Shopify store at https://enajif.com.
+              Use the following crawl data as your source of truth for product, page, pricing, and collection information.
+              Be friendly, concise, and helpful and provide information on tracking, shipping, contact us and anything you find from the webpage
+              Context:
+              ${context}
             `,
           },
           { role: "user", content: message },
