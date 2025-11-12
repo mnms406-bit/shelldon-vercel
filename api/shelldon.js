@@ -1,6 +1,5 @@
 // api/shelldon.js
 export default async function handler(req, res) {
-  // Allow frontend domain
   res.setHeader('Access-Control-Allow-Origin', 'https://enajif.com');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -12,40 +11,43 @@ export default async function handler(req, res) {
     return res.status(400).json({ reply: "Please provide a message." });
 
   try {
-    // 🧠 Fetch the crawl data from GitHub
     const crawlResponse = await fetch(
       "https://raw.githubusercontent.com/mnms406-bit/shelldon-vercel/main/data/crawl-data.json"
     );
     const crawlData = await crawlResponse.json();
 
-    // Combine all relevant data into a condensed context string, now including pricing
-    const context = `
-      PRODUCTS:
-      ${crawlData.products
-        ?.map(p => {
-          const prices = p.variants?.map(v => {
-            if (!v.priceV2?.amount) return "N/A";
-            return v.title
-              ? `${v.title}: $${Number(v.priceV2.amount).toFixed(2)}`
-              : `$${Number(v.priceV2.amount).toFixed(2)}`;
-          }).join(", ") || "N/A";
+    // Helper to limit text length
+    const truncate = (str, max = 150) => str?.slice(0, max) || "No description";
 
-          return `• ${p.title}: ${p.description?.slice(0, 150) || "No description"} | Price: ${prices}`;
-        })
-        .join("\n")}
+    const contextProducts = crawlData.products
+      ?.map(p => {
+        const variantsText = p.variants?.slice(0, 5) // Limit to first 5 variants
+          .map(v => {
+            if (v?.priceV2?.amount && v?.priceV2?.currencyCode) {
+              const amount = parseFloat(v.priceV2.amount).toFixed(2);
+              return `${v.title}: $${amount} ${v.priceV2.currencyCode}`;
+            }
+            return v.title ? `${v.title}: Price unavailable` : null;
+          })
+          .filter(Boolean)
+          .join(", ") || "No variants";
 
-      COLLECTIONS:
-      ${crawlData.collections
-        ?.map(c => `• ${c.title}: ${c.description?.slice(0, 150) || "No description"}`)
-        .join("\n")}
+        return `• ${p.title}: ${truncate(p.description)} | Variants: ${variantsText}`;
+      })
+      .join("\n");
 
-      PAGES:
-      ${crawlData.pages
-        ?.map(pg => `• ${pg.title}: ${pg.body?.slice(0, 150) || "No description"}`)
-        .join("\n")}
-    `;
+    const contextCollections = crawlData.collections
+      ?.map(c => `• ${c.title}: ${truncate(c.description)}`)
+      .join("\n");
 
-    // 🔮 Send the crawl data as context to OpenAI
+    const contextPages = crawlData.pages
+      ?.map(pg => `• ${pg.title}: ${truncate(pg.body)}`)
+      .join("\n");
+
+    // Combine context and trim to ~6000 characters max
+    let context = `PRODUCTS:\n${contextProducts}\n\nCOLLECTIONS:\n${contextCollections}\n\nPAGES:\n${contextPages}`;
+    if (context.length > 6000) context = context.slice(0, 6000) + "\n...[truncated]";
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -60,7 +62,7 @@ export default async function handler(req, res) {
             content: `
               You are Shelldon, the virtual assistant for the Shopify store at https://enajif.com.
               Use the following crawl data as your source of truth for product, page, pricing, and collection information.
-              Be friendly, concise, and helpful and provide information on tracking, shipping, contact us and anything you find from the webpage.
+              Be friendly, concise, and helpful. Provide details on tracking, shipping, contact us, and any relevant webpage info.
               Context:
               ${context}
             `,
@@ -80,8 +82,6 @@ export default async function handler(req, res) {
     res.status(200).json({ reply });
   } catch (err) {
     console.error("Shelldon serverless error:", err);
-    res
-      .status(200)
-      .json({ reply: "Shelldon couldn’t get a response right now." });
+    res.status(200).json({ reply: "Shelldon couldn’t get a response right now." });
   }
 }
