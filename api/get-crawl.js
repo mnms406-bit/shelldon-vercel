@@ -1,39 +1,26 @@
-import { Octokit } from "@octokit/rest";
-
-const githubToken = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
-const githubRepo = "mnms406-bit/shelldon-vercel"; // your repo
-const githubBranch = "main"; // branch where crawl is stored
-const githubPath = "crawl-data.json"; // file path in repo
-
-if (!githubToken) {
-  throw new Error("Missing GITHUB_PERSONAL_ACCESS_TOKEN environment variable.");
-}
-
-const octokit = new Octokit({ auth: githubToken });
-
 export default async function handler(req, res) {
+  const githubToken = process.env.GITHUB_TOKEN;
+  const githubRepo = "mnms406-bit/shelldon-vercel";
+  const githubPath = "data/crawl-data.json";
+
   try {
-    const { data } = await octokit.repos.getContent({
-      owner: githubRepo.split("/")[0],
-      repo: githubRepo.split("/")[1],
-      path: githubPath,
-      ref: githubBranch,
+    const response = await fetch(`https://api.github.com/repos/${githubRepo}/contents/${githubPath}`, {
+      headers: {
+        Authorization: `token ${githubToken}`,
+      },
     });
 
-    const content = Buffer.from(data.content, "base64").toString("utf8");
-    const crawlData = JSON.parse(content);
+    if (!response.ok) throw new Error(`GitHub fetch failed: ${response.statusText}`);
 
-    res.setHeader("Content-Type", "application/json");
+    const json = await response.json();
+    const content = Buffer.from(json.content, "base64").toString("utf-8");
+
     res.status(200).json({
       status: "success",
-      data: crawlData,
+      data: JSON.parse(content),
     });
   } catch (err) {
     console.error("Get crawl failed:", err);
-    res.status(500).json({
-      status: "error",
-      message: "No crawl data found yet or failed to fetch from GitHub.",
-      details: err.message,
-    });
+    res.status(500).json({ status: "error", message: err.message });
   }
 }
