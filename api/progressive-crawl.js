@@ -33,7 +33,6 @@ export default async function handler(req, res) {
 
       const json = await response.json();
       const connection = json.data[type];
-
       if (!connection) break;
 
       results = [...results, ...connection.edges.map((e) => e.node)];
@@ -58,6 +57,15 @@ export default async function handler(req, res) {
               description
               onlineStoreUrl
               featuredImage { url altText }
+              variants(first: 10) {
+                edges {
+                  node {
+                    id
+                    title
+                    priceV2 { amount currencyCode }
+                  }
+                }
+              }
             }
           }
         }
@@ -97,37 +105,14 @@ export default async function handler(req, res) {
         }
       }
     `;
-    
-const pagesQuery = `
-      {
-        prices(first: 50, after: $AFTER) {
-          pageInfo { hasNextPage }
-          edges {
-            cursor
-            node {
-              id
-              title
-              handle
-              body
-            }
-          }
-        }
-      }
-    `;
-    
-     const [products, collections, pages, prices] = await Promise.all([
+
+    const [products, collections, pages] = await Promise.all([
       fetchAll(productsQuery, "products"),
       fetchAll(collectionsQuery, "collections"),
       fetchAll(pagesQuery, "pages"),
-      fetchAll(pagesQuery, "prices"),
     ]);
 
-    const crawlData = {
-      timestamp: new Date().toISOString(),
-      products,
-      collections,
-      pages,
-    };
+    const crawlData = { timestamp: new Date().toISOString(), products, collections, pages };
 
     const filePath = path.join("/tmp", "crawl-data.json");
     fs.writeFileSync(filePath, JSON.stringify(crawlData, null, 2));
@@ -135,11 +120,7 @@ const pagesQuery = `
     res.status(200).json({
       status: "success",
       message: "Crawl completed successfully",
-      counts: {
-        products: products.length,
-        collections: collections.length,
-        pages: pages.length,
-      },
+      counts: { products: products.length, collections: collections.length, pages: pages.length },
       timestamp: crawlData.timestamp,
     });
   } catch (err) {
