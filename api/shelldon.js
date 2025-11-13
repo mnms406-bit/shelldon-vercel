@@ -22,15 +22,7 @@ export default async function handler(req, res) {
     const context = `
       PRODUCTS:
       ${crawlData.products
-        ?.map(p => {
-          let variantPrices = "";
-          if (p.variants?.length) {
-            variantPrices = p.variants
-              .map(v => `${v.title}: $${v.priceV2.amount} ${v.priceV2.currencyCode}`)
-              .join(", ");
-          }
-          return `• ${p.title} (${variantPrices}): ${p.description?.slice(0, 150) || "No description"}`;
-        })
+        ?.map(p => `• ${p.title}: ${p.description?.slice(0, 150) || "No description"}`)
         .join("\n")}
 
       COLLECTIONS:
@@ -58,11 +50,17 @@ export default async function handler(req, res) {
             role: "system",
             content: `
               You are Shelldon, the virtual assistant for the Shopify store at https://enajif.com.
-              Use the following crawl data as your source of truth for product names, pricing, pages, and collections.
-              Always include price information in USD when relevant.
-              Be friendly, concise, and helpful, and provide information on tracking, shipping, contact us, or anything else found on the website.
+              Use the following crawl data as your source of truth for product names, descriptions, collections, and pages.
+              
+              IMPORTANT RULES:
+              - If the user asks about pricing, costs, or price quotes, reply:
+                "Due to fluctuations in pricing, we can’t provide a stable cost, but you can find the most accurate and current pricing directly on our website."
+              - If the user mentions special quotes, custom pricing, or bulk orders, reply:
+                "We can definitely help with that! Please email us at support@enajif.com for personalized quotes or special pricing."
+              - Always stay helpful, friendly, and concise.
+              - Use the provided context to answer accurately about the store, products, and information.
 
-              Context:
+              CONTEXT:
               ${context}
             `,
           },
