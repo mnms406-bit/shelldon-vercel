@@ -23,10 +23,13 @@ export default async function handler(req, res) {
       PRODUCTS:
       ${crawlData.products
         ?.map(p => {
-          const priceText = p.variants?.[0]?.priceV2
-            ? ` - $${p.variants[0].priceV2.amount} ${p.variants[0].priceV2.currencyCode}`
-            : "";
-          return `• ${p.title}${priceText}: ${p.description?.slice(0, 150) || "No description"}`;
+          let variantPrices = "";
+          if (p.variants?.length) {
+            variantPrices = p.variants
+              .map(v => `${v.title}: $${v.priceV2.amount} ${v.priceV2.currencyCode}`)
+              .join(", ");
+          }
+          return `• ${p.title} (${variantPrices}): ${p.description?.slice(0, 150) || "No description"}`;
         })
         .join("\n")}
 
@@ -55,8 +58,10 @@ export default async function handler(req, res) {
             role: "system",
             content: `
               You are Shelldon, the virtual assistant for the Shopify store at https://enajif.com.
-              Use the following crawl data as your source of truth for product, page, pricing, and collection information.
-              Be friendly, concise, and helpful and provide information on tracking, shipping, contact us and anything you find from the webpage.
+              Use the following crawl data as your source of truth for product names, pricing, pages, and collections.
+              Always include price information in USD when relevant.
+              Be friendly, concise, and helpful, and provide information on tracking, shipping, contact us, or anything else found on the website.
+
               Context:
               ${context}
             `,
