@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-11-12T22:46:15.609Z",
+  "timestamp": "2025-11-15T00:41:42.823Z",
   "products": [
     {
       "id": "gid://shopify/Product/10287152627876",
@@ -6822,7 +6822,7 @@
               "id": "gid://shopify/ProductVariant/51136991953060",
               "title": "Default Title",
               "priceV2": {
-                "amount": "37.79",
+                "amount": "33.59",
                 "currencyCode": "USD"
               }
             }
@@ -7147,7 +7147,7 @@
               "id": "gid://shopify/ProductVariant/51136992510116",
               "title": "Default Title",
               "priceV2": {
-                "amount": "22.39",
+                "amount": "18.19",
                 "currencyCode": "USD"
               }
             }
@@ -7272,7 +7272,7 @@
               "id": "gid://shopify/ProductVariant/51136992673956",
               "title": "Default Title",
               "priceV2": {
-                "amount": "59.96",
+                "amount": "59.87",
                 "currencyCode": "USD"
               }
             }
@@ -7517,7 +7517,7 @@
               "id": "gid://shopify/ProductVariant/51136993591460",
               "title": "Default Title",
               "priceV2": {
-                "amount": "216.47",
+                "amount": "216.14",
                 "currencyCode": "USD"
               }
             }
@@ -7642,7 +7642,7 @@
               "id": "gid://shopify/ProductVariant/51136993755300",
               "title": "Default Title",
               "priceV2": {
-                "amount": "44.79",
+                "amount": "40.59",
                 "currencyCode": "USD"
               }
             }
@@ -7817,7 +7817,7 @@
               "id": "gid://shopify/ProductVariant/51136993951908",
               "title": "Default Title",
               "priceV2": {
-                "amount": "133.1",
+                "amount": "132.89",
                 "currencyCode": "USD"
               }
             }
@@ -8442,7 +8442,7 @@
               "id": "gid://shopify/ProductVariant/51136996737188",
               "title": "Default Title",
               "priceV2": {
-                "amount": "19.59",
+                "amount": "15.39",
                 "currencyCode": "USD"
               }
             }
@@ -8592,7 +8592,7 @@
               "id": "gid://shopify/ProductVariant/51136997163172",
               "title": "Default Title",
               "priceV2": {
-                "amount": "238.41",
+                "amount": "238.05",
                 "currencyCode": "USD"
               }
             }
@@ -9312,7 +9312,7 @@
               "id": "gid://shopify/ProductVariant/51137001816228",
               "title": "Default Title",
               "priceV2": {
-                "amount": "29.39",
+                "amount": "25.19",
                 "currencyCode": "USD"
               }
             }
@@ -9437,7 +9437,7 @@
               "id": "gid://shopify/ProductVariant/51137002078372",
               "title": "Default Title",
               "priceV2": {
-                "amount": "44.79",
+                "amount": "40.59",
                 "currencyCode": "USD"
               }
             }
@@ -18812,7 +18812,7 @@
               "id": "gid://shopify/ProductVariant/51137195278500",
               "title": "30g",
               "priceV2": {
-                "amount": "16.54",
+                "amount": "16.5",
                 "currencyCode": "USD"
               }
             }
