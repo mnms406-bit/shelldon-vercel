@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-05-29T02:56:21.195Z",
+  "timestamp": "2026-06-04T18:34:44.150Z",
   "products": [
     {
       "id": "gid://shopify/Product/10287152627876",
@@ -53,12 +53,12 @@
     },
     {
       "id": "gid://shopify/Product/10287157575844",
-      "title": "Customizable Unisex Cotton Crew Tee — Upload Your Photo & Text",
+      "title": "Customizable Unisex Cotton Crew Tee — Upload (1) Photo & (1) Text",
       "handle": "upload-custom-cotton-crew-unisex",
       "description": "XS S M L XL 2XL 3XL 4XL 5XL Width, in 17.48 19.02 20.51 22.01 24.02 26.02 27.99 30.00 32.00 Length, in 27.01 27.99 29.02 30.00 31.02 32.01 32.99 34.02 35.00 Sleeve length, in 7.09 7.48 7.87 8.27 8.66 9.06 9.45 9.84 10.24 Soft, breathable, and confidently simple — this crew tee slips into your everyday like it was made for you. The lightweight Next Level 3600 fabric feels airy year-round, while side seams and shoulder tape keep the silhouette steady wash after wash. Add your own image or a line of text to make it unmistakably yours: a small sleeve print or a bold chest graphic transfers cleanly with Direct-to-Film for sharp detail and lasting wear. Wear it to weekend markets, late-night coffee runs, or layered under a jacket for informal meetings — it sits quietly in the background while your personality takes the spotlight.Product features- Lightweight 4.3 oz fabric for all-season comfort- Side seams and shoulder tape for improved shape and durability- Ribbed knit collar with seam for long-lasting elasticity- Customizable with DTF transfers — image and text options- Heather blends include 90% cotton/10% polyester; EU-compliant with 2-year warrantyCare instructions- Do not dryclean- Machine wash: cold (max 30C or 90F)- Do not bleach- Tumble dry: low heat- Iron, steam or dry: low heat",
       "onlineStoreUrl": "https://enajif.com/products/upload-custom-cotton-crew-unisex",
       "featuredImage": {
-        "url": "https://cdn.shopify.com/s/files/1/0648/0701/0468/files/12908130221203897882_2048.jpg?v=1780021279",
+        "url": "https://cdn.shopify.com/s/files/1/0648/0701/0468/files/3663759506647971734_2048.jpg?v=1780107192",
         "altText": null
       },
       "variants": {
@@ -67,16 +67,6 @@
             "node": {
               "id": "gid://shopify/ProductVariant/51127407902884",
               "title": "Heather Grey / XS",
-              "priceV2": {
-                "amount": "19.94",
-                "currencyCode": "USD"
-              }
-            }
-          },
-          {
-            "node": {
-              "id": "gid://shopify/ProductVariant/51127407935652",
-              "title": "Solid Black / XS",
               "priceV2": {
                 "amount": "19.94",
                 "currencyCode": "USD"
@@ -135,16 +125,6 @@
           },
           {
             "node": {
-              "id": "gid://shopify/ProductVariant/51127408132260",
-              "title": "Solid Black / S",
-              "priceV2": {
-                "amount": "19.94",
-                "currencyCode": "USD"
-              }
-            }
-          },
-          {
-            "node": {
               "id": "gid://shopify/ProductVariant/51127408165028",
               "title": "Solid Cool Blue / S",
               "priceV2": {
@@ -157,6 +137,26 @@
             "node": {
               "id": "gid://shopify/ProductVariant/51127408197796",
               "title": "Solid Forest Green / S",
+              "priceV2": {
+                "amount": "19.94",
+                "currencyCode": "USD"
+              }
+            }
+          },
+          {
+            "node": {
+              "id": "gid://shopify/ProductVariant/51127408230564",
+              "title": "Solid Indigo / S",
+              "priceV2": {
+                "amount": "19.94",
+                "currencyCode": "USD"
+              }
+            }
+          },
+          {
+            "node": {
+              "id": "gid://shopify/ProductVariant/51127408263332",
+              "title": "Solid Natural / S",
               "priceV2": {
                 "amount": "19.94",
                 "currencyCode": "USD"
@@ -214,6 +214,12 @@
       "id": "gid://shopify/Collection/590482964644",
       "title": "SnailBox - An Enajif Brand",
       "handle": "snailbox-an-enajif-brand",
+      "description": ""
+    },
+    {
+      "id": "gid://shopify/Collection/596056178852",
+      "title": "Customizable Selection",
+      "handle": "gastromod-studio",
       "description": ""
     }
   ],
