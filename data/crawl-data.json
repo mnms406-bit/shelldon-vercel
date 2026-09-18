@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-04T18:34:44.150Z",
+  "timestamp": "2026-09-18T15:31:58.501Z",
   "products": [
     {
       "id": "gid://shopify/Product/10287152627876",
@@ -58,7 +58,7 @@
       "description": "XS S M L XL 2XL 3XL 4XL 5XL Width, in 17.48 19.02 20.51 22.01 24.02 26.02 27.99 30.00 32.00 Length, in 27.01 27.99 29.02 30.00 31.02 32.01 32.99 34.02 35.00 Sleeve length, in 7.09 7.48 7.87 8.27 8.66 9.06 9.45 9.84 10.24 Soft, breathable, and confidently simple — this crew tee slips into your everyday like it was made for you. The lightweight Next Level 3600 fabric feels airy year-round, while side seams and shoulder tape keep the silhouette steady wash after wash. Add your own image or a line of text to make it unmistakably yours: a small sleeve print or a bold chest graphic transfers cleanly with Direct-to-Film for sharp detail and lasting wear. Wear it to weekend markets, late-night coffee runs, or layered under a jacket for informal meetings — it sits quietly in the background while your personality takes the spotlight.Product features- Lightweight 4.3 oz fabric for all-season comfort- Side seams and shoulder tape for improved shape and durability- Ribbed knit collar with seam for long-lasting elasticity- Customizable with DTF transfers — image and text options- Heather blends include 90% cotton/10% polyester; EU-compliant with 2-year warrantyCare instructions- Do not dryclean- Machine wash: cold (max 30C or 90F)- Do not bleach- Tumble dry: low heat- Iron, steam or dry: low heat",
       "onlineStoreUrl": "https://enajif.com/products/upload-custom-cotton-crew-unisex",
       "featuredImage": {
-        "url": "https://cdn.shopify.com/s/files/1/0648/0701/0468/files/3663759506647971734_2048.jpg?v=1780107192",
+        "url": "https://cdn.shopify.com/s/files/1/0648/0701/0468/files/11193712556275771694_2048.jpg?v=1789496125",
         "altText": null
       },
       "variants": {
@@ -68,7 +68,7 @@
               "id": "gid://shopify/ProductVariant/51127407902884",
               "title": "Heather Grey / XS",
               "priceV2": {
-                "amount": "19.94",
+                "amount": "29.99",
                 "currencyCode": "USD"
               }
             }
@@ -78,7 +78,7 @@
               "id": "gid://shopify/ProductVariant/51127407968420",
               "title": "Solid Red / XS",
               "priceV2": {
-                "amount": "19.94",
+                "amount": "29.99",
                 "currencyCode": "USD"
               }
             }
@@ -88,7 +88,7 @@
               "id": "gid://shopify/ProductVariant/51127408001188",
               "title": "Solid Royal / XS",
               "priceV2": {
-                "amount": "19.94",
+                "amount": "29.99",
                 "currencyCode": "USD"
               }
             }
@@ -98,7 +98,7 @@
               "id": "gid://shopify/ProductVariant/51127408033956",
               "title": "Solid White / XS",
               "priceV2": {
-                "amount": "19.94",
+                "amount": "29.99",
                 "currencyCode": "USD"
               }
             }
@@ -108,7 +108,7 @@
               "id": "gid://shopify/ProductVariant/51127408066724",
               "title": "Heather Grey / S",
               "priceV2": {
-                "amount": "19.94",
+                "amount": "29.99",
                 "currencyCode": "USD"
               }
             }
@@ -118,7 +118,7 @@
               "id": "gid://shopify/ProductVariant/51127408099492",
               "title": "Solid Banana Cream / S",
               "priceV2": {
-                "amount": "19.94",
+                "amount": "29.99",
                 "currencyCode": "USD"
               }
             }
@@ -128,7 +128,7 @@
               "id": "gid://shopify/ProductVariant/51127408165028",
               "title": "Solid Cool Blue / S",
               "priceV2": {
-                "amount": "19.94",
+                "amount": "29.99",
                 "currencyCode": "USD"
               }
             }
@@ -138,7 +138,7 @@
               "id": "gid://shopify/ProductVariant/51127408197796",
               "title": "Solid Forest Green / S",
               "priceV2": {
-                "amount": "19.94",
+                "amount": "29.99",
                 "currencyCode": "USD"
               }
             }
@@ -148,7 +148,7 @@
               "id": "gid://shopify/ProductVariant/51127408230564",
               "title": "Solid Indigo / S",
               "priceV2": {
-                "amount": "19.94",
+                "amount": "29.99",
                 "currencyCode": "USD"
               }
             }
@@ -158,7 +158,7 @@
               "id": "gid://shopify/ProductVariant/51127408263332",
               "title": "Solid Natural / S",
               "priceV2": {
-                "amount": "19.94",
+                "amount": "29.99",
                 "currencyCode": "USD"
               }
             }
