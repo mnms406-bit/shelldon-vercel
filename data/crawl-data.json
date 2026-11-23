@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-10-04T00:56:30.238Z",
+  "timestamp": "2026-11-23T20:22:54.639Z",
   "products": [
     {
       "id": "gid://shopify/Product/10287152627876",
-      "title": "SnailBox Cinnamon Vanilla Soy Candle, 9oz",
+      "title": "SnailBox Cinnamon Vanilla — Soy Candle, 9oz",
       "handle": "snailbox-cinnamon-vanilla-soy-candle-9oz",
       "description": "Packed with immersive aromas, this Cinnamon Vanilla candle fills your space with the warm spice of cinnamon blended with the sweet, creamy comfort of vanilla. Think cozy kitchen vibes—like fresh cinnamon rolls or holiday baking poured into a 9oz glass jar Crafted with Care: Made from a 100% natural soy wax blend with a clean-burning cotton wick, poured into a sleek glass jar. Perfect Size: 9oz jar (2.8″ × 3.5″ / 7.1cm × 8.9cm), ideal for any room. Long-Lasting Glow: Enjoy 50–60 hours of warm, fragrant burn time. Safe & Reliable: Meets ASTM safety standards for peace of mind. Thoughtfully Made: Assembled in the USA using globally sourced materials.",
       "onlineStoreUrl": "https://enajif.com/products/snailbox-cinnamon-vanilla-soy-candle-9oz",
@@ -28,7 +28,7 @@
     },
     {
       "id": "gid://shopify/Product/10287153807524",
-      "title": "SnailBox Apple Harvest Soy Candle, 9oz",
+      "title": "SnailBox Apple Harvest — Soy Candle, 9oz",
       "handle": "snailbox-apple-harvest-soy-candle-9oz",
       "description": "Packed with immersive aromas, this Apple Harvest candle captures the crisp sweetness of freshly picked apples blended with warm notes of cinnamon, nutmeg, and clove. The result is a cozy, inviting fragrance that feels like autumn in a jar—perfect for creating a comforting atmosphere any time of year. Crafted with Care: Made from a 100% natural soy wax blend with a clean-burning cotton wick, poured into a sleek glass jar. Perfect Size: 9oz jar (2.8″ × 3.5″ / 7.1cm × 8.9cm), ideal for any room. Long-Lasting Glow: Enjoy 50–60 hours of warm, fragrant burn time. Safe & Reliable: Meets ASTM safety standards for peace of mind. Thoughtfully Made: Assembled in the USA using globally sourced materials.",
       "onlineStoreUrl": "https://enajif.com/products/snailbox-apple-harvest-soy-candle-9oz",
@@ -53,12 +53,12 @@
     },
     {
       "id": "gid://shopify/Product/10287157575844",
-      "title": "Customizable Unisex Cotton Crew Tee — Upload (1) Photo & (1) Text",
+      "title": "Customizable Unisex Cotton Crew Tee — Upload (1) Photo & (1) Text — Tee",
       "handle": "upload-custom-cotton-crew-unisex",
       "description": "XS S M L XL 2XL 3XL 4XL 5XL Width, in 17.48 19.02 20.51 22.01 24.02 26.02 27.99 30.00 32.00 Length, in 27.01 27.99 29.02 30.00 31.02 32.01 32.99 34.02 35.00 Sleeve length, in 7.09 7.48 7.87 8.27 8.66 9.06 9.45 9.84 10.24 Soft, breathable, and confidently simple — this crew tee slips into your everyday like it was made for you. The lightweight Next Level 3600 fabric feels airy year-round, while side seams and shoulder tape keep the silhouette steady wash after wash. Add your own image or a line of text to make it unmistakably yours: a small sleeve print or a bold chest graphic transfers cleanly with Direct-to-Film for sharp detail and lasting wear. Wear it to weekend markets, late-night coffee runs, or layered under a jacket for informal meetings — it sits quietly in the background while your personality takes the spotlight.Product features- Lightweight 4.3 oz fabric for all-season comfort- Side seams and shoulder tape for improved shape and durability- Ribbed knit collar with seam for long-lasting elasticity- Customizable with DTF transfers — image and text options- Heather blends include 90% cotton/10% polyester; EU-compliant with 2-year warrantyCare instructions- Do not dryclean- Machine wash: cold (max 30C or 90F)- Do not bleach- Tumble dry: low heat- Iron, steam or dry: low heat",
       "onlineStoreUrl": "https://enajif.com/products/upload-custom-cotton-crew-unisex",
       "featuredImage": {
-        "url": "https://cdn.shopify.com/s/files/1/0648/0701/0468/files/11193712556275771694_2048.jpg?v=1789496125",
+        "url": "https://cdn.shopify.com/s/files/1/0648/0701/0468/files/7665889577904718568_2048.jpg?v=1792584184",
         "altText": null
       },
       "variants": {
@@ -68,7 +68,7 @@
               "id": "gid://shopify/ProductVariant/51127407902884",
               "title": "Heather Grey / XS",
               "priceV2": {
-                "amount": "29.99",
+                "amount": "24.57",
                 "currencyCode": "USD"
               }
             }
@@ -78,7 +78,7 @@
               "id": "gid://shopify/ProductVariant/51127407968420",
               "title": "Solid Red / XS",
               "priceV2": {
-                "amount": "29.99",
+                "amount": "24.57",
                 "currencyCode": "USD"
               }
             }
@@ -88,7 +88,7 @@
               "id": "gid://shopify/ProductVariant/51127408001188",
               "title": "Solid Royal / XS",
               "priceV2": {
-                "amount": "29.99",
+                "amount": "24.57",
                 "currencyCode": "USD"
               }
             }
@@ -98,7 +98,7 @@
               "id": "gid://shopify/ProductVariant/51127408033956",
               "title": "Solid White / XS",
               "priceV2": {
-                "amount": "29.99",
+                "amount": "24.57",
                 "currencyCode": "USD"
               }
             }
@@ -108,7 +108,7 @@
               "id": "gid://shopify/ProductVariant/51127408066724",
               "title": "Heather Grey / S",
               "priceV2": {
-                "amount": "29.99",
+                "amount": "24.57",
                 "currencyCode": "USD"
               }
             }
@@ -118,7 +118,7 @@
               "id": "gid://shopify/ProductVariant/51127408099492",
               "title": "Solid Banana Cream / S",
               "priceV2": {
-                "amount": "29.99",
+                "amount": "24.57",
                 "currencyCode": "USD"
               }
             }
@@ -128,7 +128,7 @@
               "id": "gid://shopify/ProductVariant/51127408165028",
               "title": "Solid Cool Blue / S",
               "priceV2": {
-                "amount": "29.99",
+                "amount": "24.57",
                 "currencyCode": "USD"
               }
             }
@@ -138,7 +138,7 @@
               "id": "gid://shopify/ProductVariant/51127408197796",
               "title": "Solid Forest Green / S",
               "priceV2": {
-                "amount": "29.99",
+                "amount": "24.57",
                 "currencyCode": "USD"
               }
             }
@@ -148,7 +148,7 @@
               "id": "gid://shopify/ProductVariant/51127408230564",
               "title": "Solid Indigo / S",
               "priceV2": {
-                "amount": "29.99",
+                "amount": "24.57",
                 "currencyCode": "USD"
               }
             }
@@ -158,7 +158,7 @@
               "id": "gid://shopify/ProductVariant/51127408263332",
               "title": "Solid Natural / S",
               "priceV2": {
-                "amount": "29.99",
+                "amount": "24.57",
                 "currencyCode": "USD"
               }
             }
@@ -169,58 +169,46 @@
   ],
   "collections": [
     {
-      "id": "gid://shopify/Collection/590470906020",
-      "title": "Collectibles & Seasonal",
-      "handle": "collectibles-seasonal",
-      "description": ""
-    },
-    {
-      "id": "gid://shopify/Collection/590470938788",
-      "title": "Electronics & Media",
-      "handle": "electronics-media",
-      "description": ""
-    },
-    {
       "id": "gid://shopify/Collection/590470971556",
       "title": "Toys & Hobbies",
       "handle": "toys-hobbies",
-      "description": ""
-    },
-    {
-      "id": "gid://shopify/Collection/590471004324",
-      "title": "Health & Beauty",
-      "handle": "health-beauty",
-      "description": ""
+      "description": "Toys and hobbies from Enajif for someone special — fun and creativity for every age."
     },
     {
       "id": "gid://shopify/Collection/590471037092",
       "title": "Clothing & Accessories",
       "handle": "clothing-accessories",
-      "description": ""
+      "description": "Clothing and accessories for every personality — funny graphic tees, cozy wear and everyday essentials from Enajif."
     },
     {
       "id": "gid://shopify/Collection/590471069860",
       "title": "Home & Furniture",
       "handle": "home-furniture",
-      "description": ""
-    },
-    {
-      "id": "gid://shopify/Collection/590471987364",
-      "title": "Pets & Supplies",
-      "handle": "pets-supplies",
-      "description": ""
+      "description": "Home goods with personality from Enajif to your doorstep — cozy style and everyday comfort for every room."
     },
     {
       "id": "gid://shopify/Collection/590482964644",
-      "title": "SnailBox - An Enajif Brand",
-      "handle": "snailbox-an-enajif-brand",
-      "description": ""
+      "title": "SnailBox",
+      "handle": "snailbox",
+      "description": "SnailBox — An Enajif Brand: everyday essentials and seasonal drops at great value."
     },
     {
       "id": "gid://shopify/Collection/596056178852",
-      "title": "Customizable Selection",
-      "handle": "gastromod-studio",
-      "description": ""
+      "title": "Customizable",
+      "handle": "customizable",
+      "description": "Customizable gifts made personal — upload your photo and text on tees, mugs, puzzles and more from Enajif."
+    },
+    {
+      "id": "gid://shopify/Collection/692979040420",
+      "title": "Holiday Season",
+      "handle": "holiday-season",
+      "description": "Holiday apparel, home goods and more celebrating the season with Enajif during the happiest time of the year. (Christmas, New Year, Hanukkah)"
+    },
+    {
+      "id": "gid://shopify/Collection/693254914212",
+      "title": "Graphic Tees",
+      "handle": "graphic-tees",
+      "description": "Graphic tees for every personality — funny work humor, bold designs and custom creations. Express your style with Enajif."
     }
   ],
   "pages": [
@@ -240,31 +228,43 @@
       "id": "gid://shopify/Page/113264787620",
       "title": "Track Order",
       "handle": "track-order",
-      "body": "<p>Please enter you tracking number below. if your tracking number doesn't work feel free to contact us at support@enajif.com.</p>\n<div style=\"text-align: center;\">\n<!--Tracking number input box.--> <input maxlength=\"50\" id=\"YQNum\" type=\"text\"> <!--The button is used to call script method.--> <input value=\"TRACK\" type=\"button\"> <!--Container to display the tracking result.-->\n</div>\n<div id=\"YQContainer\"></div>\n<!--Script code can be put in the bottom of the page, wait until the page is loaded then execute.-->\n<p><script type=\"text/javascript\" src=\"//www.17track.net/externalcall.js\"></script> <script type=\"text/javascript\">// <![CDATA[\n\nfunction doTrack() {\n\nvar num = document.getElementById(\"YQNum\").value;\n\nif(num===\"\"){\n\nalert(\"Enter your number.\"); \n\nreturn;\n\n}\n\nYQV5.trackSingle({\n\n//Required, Specify the container ID of the carrier content.\n\nYQ_ContainerId:\"YQContainer\",\n\n//Optional, specify tracking result height, max height 800px, default is 560px.\n\nYQ_Height:560,\n\n//Optional, select carrier, default to auto identify.\n\nYQ_Fc:\"0\",\n\n//Optional, specify UI language, default language is automatically detected based on the browser settings.\n\nYQ_Lang:\"en\",\n\n//Required, specify the number needed to be tracked.\n\nYQ_Num:num\n\n});\n\n}\n\n// ]]></script></p>"
-    },
-    {
-      "id": "gid://shopify/Page/113288904868",
-      "title": "News Today",
-      "handle": "news-today",
-      "body": "<meta charset=\"UTF-8\"> <meta content=\"width=device-width, initial-scale=1.0\" name=\"viewport\">\n<h1><select id=\"newsChannels\" onchange=\"showNews()\">\n<option value=\"\">Select a channel</option>\n<option value=\"https://time.com/\">Time</option>\n<option value=\"https://edition.cnn.com/\">CNN</option>\n<option value=\"https://www.reuters.com/\">Reuters</option>\n<option value=\"https://www.aljazeera.com/\">Al Jazeera</option>\n<!-- Add more channels as needed --></select></h1>\n<div id=\"newsContainer\"></div>\n<script>\nfunction showNews() {\n  var dropdown = document.getElementById(\"newsChannels\");\n  var selectedChannel = dropdown.options[dropdown.selectedIndex].value;\n  var newsContainer = document.getElementById(\"newsContainer\");\n\n  if (selectedChannel) {\n    newsContainer.innerHTML = '<iframe src=\"' + selectedChannel + '\" width=\"100%\" height=\"600px\"></iframe>';\n  } else {\n    newsContainer.innerHTML = '';\n  }\n}\n</script>"
+      "body": "<p>Please enter your tracking number below. If your tracking number doesn't work feel free to contact us at support@enajif.com.</p>\n<div style=\"text-align:center;\">\n<input maxlength=\"50\" id=\"YQNum\" type=\"text\">\n<input value=\"TRACK\" type=\"button\" onclick=\"doTrack()\">\n</div>\n<div id=\"YQContainer\"></div>\n<script>\nfunction load17Track(cb){\n  if(window.YQV5) return cb();\n  var s=document.createElement('script');\n  s.src='//www.17track.net/externalcall.js';\n  s.onload=cb;\n  document.body.appendChild(s);\n}\nfunction doTrack(){\n  var num=document.getElementById(\"YQNum\").value;\n  if(num===\"\"){alert(\"Enter your number.\");return;}\n  load17Track(function(){\n    YQV5.trackSingle({YQ_ContainerId:\"YQContainer\",YQ_Height:560,YQ_Fc:\"0\",YQ_Lang:\"en\",YQ_Num:num});\n  });\n}\n</script>"
     },
     {
       "id": "gid://shopify/Page/113292443812",
       "title": "Everything Thrift, in a Jiff!",
       "handle": "banner",
-      "body": "<!-- CLEAN HERO BANNER -->\n<section id=\"hero-banner\" class=\"hero-banner\">\n  <div class=\"slides\">\n\n    <!-- Slide 1 -->\n    <div class=\"slide active\" style=\"background-image: url('https://cdn.shopify.com/s/files/1/0648/0701/0468/files/Retro_Thrift_Store_Treasures.png?v=1755486692');\">\n      <div class=\"slide-content\">\n        <div class=\"text-block\">\n          <h1>Discover Amazing Finds in a Jiff!</h1>\n          <p>Shop top products from Collectibles to Customizable Products</p>\n        </div>\n        <div class=\"button-block\"><a href=\"https://enajif.com/collections/all\" class=\"cta-btn\">Shop Now</a></div>\n      </div>\n    </div>\n\n    <!-- Slide 2 -->\n    <div class=\"slide\" style=\"background-image: url('https://cdn.shopify.com/s/files/1/0648/0701/0468/files/Retro_Thrift_Store_Treasures.png?v=1755486692');\">\n      <div class=\"slide-content\">\n        <div class=\"text-block\">\n          <h1>Unbeatable Deals Every Day</h1>\n          <p>Don’t miss our limited-time offers and exclusive drops</p>\n        </div>\n        <div class=\"button-block\"><a href=\"https://enajif.com/collections/all\" class=\"cta-btn\">View Deals</a></div>\n      </div>\n    </div>\n\n    <!-- Slide 3 -->\n    <div class=\"slide\" style=\"background-image: url('https://cdn.shopify.com/s/files/1/0648/0701/0468/files/Retro_Thrift_Store_Treasures.png?v=1755486692');\">\n      <div class=\"slide-content\">\n        <div class=\"text-block\">\n          <h1>Snailbox Surprises Await!</h1>\n          <p>Fun, unique products delivered straight to your door</p>\n        </div>\n        <div class=\"button-block\"><a href=\"https://enajif.com/collections/snailbox-an-enajif-brand\" class=\"cta-btn\">Explore Now</a></div>\n      </div>\n    </div>\n\n  </div>\n\n  <!-- Outside Arrows -->\n  <div class=\"nav-arrows\">\n    <span class=\"prev\">❮</span>\n    <span class=\"next\">❯</span>\n  </div>\n</section>\n\n<style>\n/* Clean thin hero banner */\n#hero-banner.hero-banner {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  height: 20vh;\n}\n\n/* Slide base */\n#hero-banner .slides { position: relative; height: 100%; }\n\n#hero-banner .slide {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 20vh;\n  background-size: cover;\n  background-position: center;\n\n  opacity: 0;\n  transform: scale(1.02);\n  transition: opacity 0.9s ease, transform 0.9s ease;\n\n  display: flex;\n  align-items: flex-end;\n  justify-content: center;\n\n  z-index: 0;\n  pointer-events: none;\n}\n\n/* Dark overlay */\n#hero-banner .slide::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background: rgba(0, 0, 0, 0.25);\n  z-index: 0;\n}\n\n#hero-banner .slide.active {\n  opacity: 1;\n  transform: scale(1);\n  z-index: 1;\n  pointer-events: auto;\n}\n\n/* Slide content should be above overlay */\n#hero-banner .slide-content {\n  position: relative;\n  width: 100%;\n  max-width: 1200px;\n  padding: 5px 20px;\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  background: linear-gradient(to top, rgba(0,0,0,0.25), rgba(0,0,0,0));\n  color: #ffffff; /* white text */\n  z-index: 1;\n}\n\n/* Text styling */\n#hero-banner .text-block h1 {\n  font-size: 1.5rem;\n  margin: 0 0 5px;\n  font-weight: 500;\n  letter-spacing: 0.5px;\n  color: #ffffff;\n  text-shadow: 0 2px 8px rgba(0,0,0,0.5); /* subtle shadow for readability */\n}\n\n#hero-banner .text-block p {\n  font-size: 1rem;\n  margin: 0;\n  color: #ffffff;\n  text-shadow: 0 2px 8px rgba(0,0,0,0.4); /* keep subtle shadow */\n}\n\n/* LOWERED BUTTON */\n#hero-banner .button-block {\n  text-align: right;\n  margin-top: 20px;\n}\n\n/* Button */\n#hero-banner .cta-btn {\n  padding: 10px 25px;\n  font-size: 1rem;\n  background: #ff9900;\n  color: #fff;\n  text-decoration: none;\n  font-weight: bold;\n  border-radius: 6px;\n  transition: background 0.3s;\n}\n\n#hero-banner .cta-btn:hover {\n  background: #e68a00;\n}\n\n/* Arrows */\n#hero-banner .nav-arrows {\n  position: absolute;\n  top: 50%;\n  left: -40px;\n  right: -40px;\n  transform: translateY(-50%);\n  display: flex;\n  justify-content: space-between;\n  pointer-events: none;\n}\n\n#hero-banner .nav-arrows span {\n  pointer-events: auto;\n  cursor: pointer;\n  font-size: 1.8em;\n  opacity: 0.7;\n  color: #fff;\n  transition: 0.2s ease;\n}\n\n#hero-banner .nav-arrows span:hover {\n  opacity: 1;\n  transform: scale(1.1);\n}\n\n/* Mobile adjustments */\n@media (max-width: 768px) {\n  #hero-banner.hero-banner { height: 26vh; }\n  #hero-banner .slide { height: 26vh; }\n  #hero-banner .slide-content { flex-direction: column; text-align: center; }\n  #hero-banner .cta-btn { margin-top: 12px; }\n}\n\n/* AUDIO BELOW BANNER */\n.audio-container {\n  max-width: 100%;\n  width: 100%;\n  margin: 0 auto;\n  text-align: center;\n  padding: 15px 0;\n}\n\n.audio-container audio {\n  width: 100%;\n  border-radius: 12px;\n}\n</style>\n\n<!-- AUDIO BELOW BANNER -->\n<div class=\"audio-container\">\n  <audio controls preload=\"auto\">\n    <source src=\"https://cdn.shopify.com/s/files/1/0648/0701/0468/files/Everything_Thrift_In_a_Jiff.mp3?v=1755487564\" type=\"audio/mpeg\">\n    Your browser does not support the audio element.\n  </source></audio>\n</div>\n\n<script>\ndocument.addEventListener(\"DOMContentLoaded\", function () {\n  const slides = document.querySelectorAll(\"#hero-banner .slide\");\n  const prev = document.querySelector(\"#hero-banner .prev\");\n  const next = document.querySelector(\"#hero-banner .next\");\n\n  let index = 0;\n\n  function showSlide(i) {\n    slides.forEach(slide => slide.classList.remove(\"active\"));\n    slides[i].classList.add(\"active\");\n  }\n\n  function nextSlide() {\n    index = (index + 1) % slides.length;\n    showSlide(index);\n  }\n\n  function prevSlide() {\n    index = (index - 1 + slides.length) % slides.length;\n    showSlide(index);\n  }\n\n  let autoPlay = setInterval(nextSlide, 7000);\n\n  next.addEventListener(\"click\", () => { nextSlide(); clearInterval(autoPlay); });\n  prev.addEventListener(\"click\", () => { prevSlide(); clearInterval(autoPlay); });\n});\n</script>\n"
-    },
-    {
-      "id": "gid://shopify/Page/152483659940",
-      "title": "Industry Updates",
-      "handle": "industry-updates",
-      "body": "<div id=\"industry-updates\" style=\"font-family: Arial, sans-serif; margin: 20px 0;\">\n  <h2 style=\"font-size: 28px; margin-bottom: 20px;\">Click below to see more:</h2>\n  <div id=\"news-container\" style=\"display: flex; flex-wrap: wrap; gap: 20px;\"></div>\n  <button id=\"loadMoreBtn\" style=\"margin-top: 20px; padding: 10px 20px; font-size: 14px; border:none; border-radius:5px; background-color:#1a0dab; color:white; cursor:pointer;\">Load More Updates</button>\n</div>\n\n<script>\nconst allArticles = [\n  // General e-commerce\n  {\n    title: \"E-commerce Resale Market Growth\",\n    description: \"The resale market grew 21% YoY, driven by sustainable fashion trends…\",\n    link: \"https://www.retaildive.com/\",\n    source: \"Retail Dive\",\n    date: \"11/18/2025\"\n  },\n  {\n    title: \"Shipping & Supply Chain Challenges\",\n    description: \"Supply chain delays continue to impact online retailers, highlighting the need for better inventory planning…\",\n    link: \"https://www.ecommercebytes.com/\",\n    source: \"eCommerceBytes\",\n    date: \"11/17/2025\"\n  },\n  {\n    title: \"AI Tools Transforming E-commerce\",\n    description: \"Artificial intelligence is helping online stores optimize pricing, marketing, and customer service…\",\n    link: \"https://www.practicalecommerce.com/\",\n    source: \"Practical Ecommerce\",\n    date: \"11/16/2025\"\n  },\n  {\n    title: \"Mobile Shopping Trends 2025\",\n    description: \"Mobile commerce continues to dominate, with smartphones now accounting for more than half of online transactions…\",\n    link: \"https://www.bigcommerce.com/blog/ecommerce-news/\",\n    source: \"BigCommerce Blog\",\n    date: \"11/15/2025\"\n  },\n  {\n    title: \"Sustainability in Online Retail\",\n    description: \"More consumers are prioritizing eco-friendly products and secondhand marketplaces, reshaping the online retail landscape…\",\n    link: \"https://www.iovista.com/ecommerce-blog/\",\n    source: \"ioVista Ecommerce Blog\",\n    date: \"11/14/2025\"\n  },\n  {\n    title: \"Optimizing Shipping & Fulfillment\",\n    description: \"Efficient logistics remain key for online store success, with faster delivery increasing customer retention…\",\n    link: \"https://www.ithinklogistics.com/\",\n    source: \"iThinkLogistics\",\n    date: \"11/13/2025\"\n  },\n\n  // Tariff / Dropshipping updates\n  {\n    title: \"How Tariffs Impact E-commerce Sellers\",\n    description: \"Recent tariffs are affecting online marketplaces and Amazon sellers; strategies are needed to maintain profit margins…\",\n    link: \"https://www.helium10.com/blog/impact-of-tariffs-on-ecommerce-sellers/\",\n    source: \"Helium 10\",\n    date: \"11/18/2025\"\n  },\n  {\n    title: \"US Import Duty Rule Changes\",\n    description: \"The $800 de minimis exemption ended; import duties now apply to smaller shipments, impacting dropshipping margins…\",\n    link: \"https://www.easyship.com/blog/impact-of-new-us-import-duty-rules\",\n    source: \"Easyship\",\n    date: \"11/17/2025\"\n  },\n  {\n    title: \"New Tariffs & Dropshipping\",\n    description: \"Dropshippers face higher import costs due to new tariffs; planning and alternative sourcing strategies are essential…\",\n    link: \"https://www.zendrop.com/blog/understanding-the-new-tariffs/\",\n    source: \"Zendrop\",\n    date: \"11/16/2025\"\n  },\n  {\n    title: \"Dropshipping Tariffs from China\",\n    description: \"New import duties affect dropshippers sourcing from China; compliance and margin strategies are key…\",\n    link: \"https://supliful.com/blog/dropshipping-tariffs-and-taxes-to-import-from-china\",\n    source: \"Supliful\",\n    date: \"11/15/2025\"\n  },\n  {\n    title: \"Ecommerce Tariffs: What’s Changing & How to Adapt\",\n    description: \"Analysis on tariffs, de minimis removal, and other trade changes reshaping small-to-mid ecommerce businesses…\",\n    link: \"https://trueprofit.io/blog/ecommerce-tariffs\",\n    source: \"TrueProfit.io\",\n    date: \"11/14/2025\"\n  },\n  {\n    title: \"Optimizing Product Feeds & Checkout to Offset Tariff Volatility\",\n    description: \"Advice on changing your checkout and product feed to account for landed costs and import duties…\",\n    link: \"https://www.graypoplar.com/posts/optimizing-product-feeds-and-checkout-experience-to-offset-tariff-and-shipping-volatility?utm_source=chatgpt.com\",\n    source: \"GrayPoplar\",\n    date: \"11/13/2025\"\n  },\n  {\n    title: \"Avoid New Tariffs with Low-Duty Fulfillment\",\n    description: \"Strategies for avoiding high duty by using different fulfillment methods for dropshipping…\",\n    link: \"https://www.graypoplar.com/posts/avoid-new-tariffs-with-one-piece-dropshipping-and-low-duty-fulfillment?utm_source=chatgpt.com\",\n    source: \"GrayPoplar\",\n    date: \"11/12/2025\"\n  }\n];\n\nlet displayedCount = 0;\nconst increment = 6; // number of cards to show initially and each load\nconst newsContainer = document.getElementById('news-container');\nconst loadMoreBtn = document.getElementById('loadMoreBtn');\n\nfunction renderArticles() {\n  const nextArticles = allArticles.slice(displayedCount, displayedCount + increment);\n  nextArticles.forEach(item => {\n    const card = document.createElement('div');\n    card.style.flex = '1 1 300px';\n    card.style.border = '1px solid #ddd';\n    card.style.borderRadius = '10px';\n    card.style.padding = '15px';\n    card.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';\n    card.style.backgroundColor = '#fff';\n    card.style.transition = 'transform 0.2s, box-shadow 0.2s';\n    card.onmouseover = () => { card.style.transform='translateY(-3px)'; card.style.boxShadow='0 5px 15px rgba(0,0,0,0.2)'; };\n    card.onmouseout = () => { card.style.transform='translateY(0)'; card.style.boxShadow='0 2px 6px rgba(0,0,0,0.1)'; };\n\n    card.innerHTML = `\n      <a href=\"${item.link}\" target=\"_blank\" style=\"text-decoration:none; color:#1a0dab; font-weight:bold; font-size:16px;\">${item.title}</a>\n      <p style=\"margin:8px 0; font-size:14px; color:#333;\">\n        ${item.description} \n        <a href=\"${item.link}\" target=\"_blank\" style=\"color:#555; font-weight:normal;\">Learn more at ${item.source}</a>\n      </p>\n      <span style=\"font-size:12px; color:#999;\">Source: ${item.source} | ${item.date}</span>\n    `;\n    newsContainer.appendChild(card);\n  });\n  displayedCount += nextArticles.length;\n\n  if(displayedCount >= allArticles.length){\n    loadMoreBtn.style.display = 'none';\n  }\n}\n\n// Initial render\nrenderArticles();\n\n// Load more button\nloadMoreBtn.addEventListener('click', renderArticles);\n</script>\n"
+      "body": "<!-- CLEAN HERO BANNER -->\n<section id=\"hero-banner\" class=\"hero-banner\">\n  <div class=\"slides\">\n\n    <!-- Slide 1 -->\n    <div class=\"slide active\" style=\"background-image: url('https://cdn.shopify.com/s/files/1/0648/0701/0468/files/Retro_Thrift_Store_Treasures.png?v=1755486692');\">\n      <div class=\"slide-content\">\n        <div class=\"text-block\">\n          <h1>Discover Amazing Finds in a Jiff!</h1>\n          <p>Shop top products from Collectibles to Customizable Products</p>\n        </div>\n        <div class=\"button-block\"><a href=\"https://enajif.com/collections/all\" class=\"cta-btn\">Shop Now</a></div>\n      </div>\n    </div>\n\n    <!-- Slide 2 -->\n    <div class=\"slide\" style=\"background-image: url('https://cdn.shopify.com/s/files/1/0648/0701/0468/files/Retro_Thrift_Store_Treasures.png?v=1755486692');\">\n      <div class=\"slide-content\">\n        <div class=\"text-block\">\n          <h2>Unbeatable Deals Every Day</h2>\n          <p>Don’t miss our limited-time offers and exclusive drops</p>\n        </div>\n        <div class=\"button-block\"><a href=\"https://enajif.com/collections/all\" class=\"cta-btn\">View Deals</a></div>\n      </div>\n    </div>\n\n    <!-- Slide 3 -->\n    <div class=\"slide\" style=\"background-image: url('https://cdn.shopify.com/s/files/1/0648/0701/0468/files/Retro_Thrift_Store_Treasures.png?v=1755486692');\">\n      <div class=\"slide-content\">\n        <div class=\"text-block\">\n          <h2>Snailbox Surprises Await!</h2>\n          <p>Fun, unique products delivered straight to your door</p>\n        </div>\n        <div class=\"button-block\"><a href=\"https://enajif.com/collections/snailbox-an-enajif-brand\" class=\"cta-btn\">Explore Now</a></div>\n      </div>\n    </div>\n\n  </div>\n\n  <!-- Outside Arrows -->\n  <div class=\"nav-arrows\">\n    <span class=\"prev\">❮</span>\n    <span class=\"next\">❯</span>\n  </div>\n</section>\n\n<style>\n/* Clean thin hero banner */\n#hero-banner.hero-banner {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  height: 20vh;\n}\n\n/* Slide base */\n#hero-banner .slides { position: relative; height: 100%; }\n\n#hero-banner .slide {\n  position: absolute;\n  inset: 0;\n  width: 100%;\n  height: 20vh;\n  background-size: cover;\n  background-position: center;\n\n  opacity: 0;\n  transform: scale(1.02);\n  transition: opacity 0.9s ease, transform 0.9s ease;\n\n  display: flex;\n  align-items: flex-end;\n  justify-content: center;\n\n  z-index: 0;\n  pointer-events: none;\n}\n\n/* Dark overlay */\n#hero-banner .slide::before {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  background: rgba(0, 0, 0, 0.25);\n  z-index: 0;\n}\n\n#hero-banner .slide.active {\n  opacity: 1;\n  transform: scale(1);\n  z-index: 1;\n  pointer-events: auto;\n}\n\n/* Slide content should be above overlay */\n#hero-banner .slide-content {\n  position: relative;\n  width: 100%;\n  max-width: 1200px;\n  padding: 5px 20px;\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  background: linear-gradient(to top, rgba(0,0,0,0.25), rgba(0,0,0,0));\n  color: #ffffff; /* white text */\n  z-index: 1;\n}\n\n/* Text styling */\n#hero-banner .text-block h1,\n#hero-banner .text-block h2 {\n  font-size: 1.5rem;\n  margin: 0 0 5px;\n  font-weight: 500;\n  letter-spacing: 0.5px;\n  color: #ffffff;\n  text-shadow: 0 2px 8px rgba(0,0,0,0.5); /* subtle shadow for readability */\n}\n\n#hero-banner .text-block p {\n  font-size: 1rem;\n  margin: 0;\n  color: #ffffff;\n  text-shadow: 0 2px 8px rgba(0,0,0,0.4); /* keep subtle shadow */\n}\n\n/* LOWERED BUTTON */\n#hero-banner .button-block {\n  text-align: right;\n  margin-top: 20px;\n}\n\n/* Button */\n#hero-banner .cta-btn {\n  padding: 10px 25px;\n  font-size: 1rem;\n  background: #ff9900;\n  color: #fff;\n  text-decoration: none;\n  font-weight: bold;\n  border-radius: 6px;\n  transition: background 0.3s;\n}\n\n#hero-banner .cta-btn:hover {\n  background: #e68a00;\n}\n\n/* Arrows */\n#hero-banner .nav-arrows {\n  position: absolute;\n  top: 50%;\n  left: -40px;\n  right: -40px;\n  transform: translateY(-50%);\n  display: flex;\n  justify-content: space-between;\n  pointer-events: none;\n}\n\n#hero-banner .nav-arrows span {\n  pointer-events: auto;\n  cursor: pointer;\n  font-size: 1.8em;\n  opacity: 0.7;\n  color: #fff;\n  transition: 0.2s ease;\n}\n\n#hero-banner .nav-arrows span:hover {\n  opacity: 1;\n  transform: scale(1.1);\n}\n\n/* Mobile adjustments */\n@media (max-width: 768px) {\n  #hero-banner.hero-banner { height: 26vh; }\n  #hero-banner .slide { height: 26vh; }\n  #hero-banner .slide-content { flex-direction: column; text-align: center; }\n  #hero-banner .cta-btn { margin-top: 12px; }\n}\n\n/* AUDIO BELOW BANNER */\n.audio-container {\n  max-width: 100%;\n  width: 100%;\n  margin: 0 auto;\n  text-align: center;\n  padding: 15px 0;\n}\n\n.audio-container audio {\n  width: 100%;\n  border-radius: 12px;\n}\n</style>\n\n<!-- AUDIO BELOW BANNER -->\n<div class=\"audio-container\">\n  <audio controls preload=\"auto\">\n    <source src=\"https://cdn.shopify.com/s/files/1/0648/0701/0468/files/Everything_Thrift_In_a_Jiff.mp3?v=1755487564\" type=\"audio/mpeg\">\n    Your browser does not support the audio element.\n  </source></audio>\n</div>\n\n<script>\ndocument.addEventListener(\"DOMContentLoaded\", function () {\n  const slides = document.querySelectorAll(\"#hero-banner .slide\");\n  const prev = document.querySelector(\"#hero-banner .prev\");\n  const next = document.querySelector(\"#hero-banner .next\");\n\n  let index = 0;\n\n  function showSlide(i) {\n    slides.forEach(slide => slide.classList.remove(\"active\"));\n    slides[i].classList.add(\"active\");\n  }\n\n  function nextSlide() {\n    index = (index + 1) % slides.length;\n    showSlide(index);\n  }\n\n  function prevSlide() {\n    index = (index - 1 + slides.length) % slides.length;\n    showSlide(index);\n  }\n\n  let autoPlay = setInterval(nextSlide, 7000);\n\n  next.addEventListener(\"click\", () => { nextSlide(); clearInterval(autoPlay); });\n  prev.addEventListener(\"click\", () => { prevSlide(); clearInterval(autoPlay); });\n});\n</script>\n"
     },
     {
       "id": "gid://shopify/Page/152484118692",
       "title": "Subscribe",
       "handle": "subscribe",
-      "body": "<div style=\"max-width: 700px; margin: 40px auto; padding: 40px; background: linear-gradient(135deg, #fdfcf6, #f0eae0); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; font-family: Arial, sans-serif;\">\n<h1 style=\"font-size: 2rem; margin-bottom: 10px; color: #333;\">Subscribe to our emails</h1>\n<p style=\"font-size: 1rem; margin-bottom: 30px; color: #555;\">Be the first to know about new collections and exclusive offers.</p>\n<form class=\"newsletter-form\" id=\"contact_form\" action=\"/contact#contact_form\" method=\"post\">\n<input value=\"customer\" name=\"form_type\" type=\"hidden\"> <input value=\"✓\" name=\"utf8\" type=\"hidden\"> <input value=\"newsletter\" name=\"contact[tags]\" type=\"hidden\">\n<div style=\"display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;\">\n<input style=\"padding: 12px 16px; border: 1px solid #ccc; border-radius: 6px; flex: 1 1 250px; font-size: 1rem;\" required=\"\" placeholder=\"Enter your email\" name=\"contact[email]\" type=\"email\"> <button style=\"padding: 12px 20px; background-color: #333; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 5px;\" type=\"submit\"> Subscribe <svg xmlns=\"http://www.w3.org/2000/svg\" style=\"width: 14px; height: 10px;\" fill=\"none\" viewbox=\"0 0 14 10\">\n          <path fill=\"currentColor\" d=\"M8.537.808a.5.5 0 01.817-.162l4 4a.5.5 0 010 .708l-4 4a.5.5 0 11-.708-.708L11.793 5.5H1a.5.5 0 010-1h10.793L8.646 1.354a.5.5 0 01-.109-.546z\" clip-rule=\"evenodd\" fill-rule=\"evenodd\"></path>\n        </svg> </button>\n</div>\n</form>\n</div>"
+      "body": "<div style=\"max-width: 700px; margin: 40px auto; padding: 40px; background: linear-gradient(135deg, #fdfcf6, #f0eae0); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; font-family: Arial, sans-serif;\">\n<h2 style=\"font-size: 2rem; margin-bottom: 10px; color: #333;\">Subscribe to our emails</h2>\n<p style=\"font-size: 1rem; margin-bottom: 30px; color: #555;\">Be the first to know about new collections and exclusive offers.</p>\n<form class=\"newsletter-form\" id=\"contact_form\" action=\"/contact#contact_form\" method=\"post\">\n<input value=\"customer\" name=\"form_type\" type=\"hidden\"> <input value=\"✓\" name=\"utf8\" type=\"hidden\"> <input value=\"newsletter\" name=\"contact[tags]\" type=\"hidden\">\n<div style=\"display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;\">\n<input style=\"padding: 12px 16px; border: 1px solid #ccc; border-radius: 6px; flex: 1 1 250px; font-size: 1rem;\" required=\"\" placeholder=\"Enter your email\" name=\"contact[email]\" type=\"email\"> <button style=\"padding: 12px 20px; background-color: #333; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; gap: 5px;\" type=\"submit\"> Subscribe <svg xmlns=\"http://www.w3.org/2000/svg\" style=\"width: 14px; height: 10px;\" fill=\"none\" viewbox=\"0 0 14 10\">\n          <path fill=\"currentColor\" d=\"M8.537.808a.5.5 0 01.817-.162l4 4a.5.5 0 010 .708l-4 4a.5.5 0 11-.708-.708L11.793 5.5H1a.5.5 0 010-1h10.793L8.646 1.354a.5.5 0 01-.109-.546z\" clip-rule=\"evenodd\" fill-rule=\"evenodd\"></path>\n        </svg> </button>\n</div>\n</form>\n</div>"
+    },
+    {
+      "id": "gid://shopify/Page/175116288164",
+      "title": "Spooky Style at a Snail’s Pace",
+      "handle": "halloween-page",
+      "body": "<p><img src=\"https://cdn.shopify.com/s/files/1/0648/0701/0468/files/3.jpg?v=1792591238\" alt=\"\"></p>"
+    },
+    {
+      "id": "gid://shopify/Page/175116386468",
+      "title": "Holiday Season at a Snail’s Pace",
+      "handle": "holiday-season-at-a-snail-s-pace",
+      "body": "<p><img src=\"https://cdn.shopify.com/s/files/1/0648/0701/0468/files/IMG_0604.jpg?v=1792593146\" alt=\"\"></p>"
+    },
+    {
+      "id": "gid://shopify/Page/175116419236",
+      "title": "Can't find what your looking for? Reach out and we can help!",
+      "handle": "cant-find-what-your-looking-for-reach-out-and-we-can-help",
+      "body": "<p><img src=\"https://cdn.shopify.com/s/files/1/0648/0701/0468/files/image_76ddde4d.jpg?v=1792594175\" alt=\"\"></p>"
+    },
+    {
+      "id": "gid://shopify/Page/175226978468",
+      "title": "🎄 Holiday Season 🎄",
+      "handle": "🎄-holiday-season-🎄",
+      "body": "<style>\n.ej{width:100vw;max-width:100vw;margin-left:calc(-50vw + 50%);padding:0 0 36px;color:#0E1B4D;background-color:#7FB8D9;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Ctext x='50%25' y='65%25' font-size='20' text-anchor='middle' fill='rgba(255,255,255,0.28)'%3E%E2%9D%84%3C/text%3E%3C/svg%3E\"),url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Ctext x='50%25' y='65%25' font-size='30' text-anchor='middle' fill='rgba(255,255,255,0.22)'%3E%E2%9D%84%3C/text%3E%3C/svg%3E\"),url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Ctext x='50%25' y='65%25' font-size='44' text-anchor='middle' fill='rgba(255,255,255,0.18)'%3E%E2%9D%84%3C/text%3E%3C/svg%3E\"),linear-gradient(180deg,#0B5D2E 0%,#7FB8D9 32%,#E9F2F9 48%,#FDE8E8 62%,#B11E23 100%);background-size:140px 140px,200px 200px,280px 280px,cover;animation:snowfall 9s linear infinite}\n@keyframes snowfall{from{background-position:0 0,0 0,0 0,0 0}to{background-position:0 140px,0 220px,0 320px,0 0}}\n.ej-hero,.ej-cats,.ej-view{max-width:900px;margin-left:auto;margin-right:auto;padding-left:16px;padding-right:16px;box-sizing:border-box}\n.ej-hero{text-align:center;padding-top:28px}\n.ej-hero h2{margin:0;font-size:32px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.65),0 0 2px rgba(0,0,0,.8);font-weight:800}\n.ej-hero p{margin:6px 0 0;font-size:14px;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.65)}\n.ej-ship{text-align:center;font-size:12px;font-weight:700;color:#FFE9A8!important;text-shadow:0 1px 6px rgba(0,0,0,.6)}\n.ej-cats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}\n.ej-cats a{display:block;border-radius:12px;padding:18px 14px;text-align:center;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease}\n.ej-cats b{font-size:18px;display:block}\n.ej-cats span{font-size:12px}\n.ej-kids{background:linear-gradient(135deg,#0B5D2E,#15803d);border:1px solid #E6D98E}\n.ej-kids:hover{transform:translateY(-3px);box-shadow:0 0 22px rgba(46,160,90,.85)}\n.ej-adult{background:linear-gradient(135deg,#B11E23,#7a1216);border:1px solid #E6D98E}\n.ej-adult:hover{transform:translateY(-3px);box-shadow:0 0 22px rgba(255,180,180,.9)}\n.ej-kids b,.ej-kids span,.ej-adult b,.ej-adult span{color:#fff!important;opacity:1!important;text-shadow:0 1px 4px rgba(0,0,0,.5)}\n.ej-view{text-align:center;margin-top:22px}\n.ej-view a{display:inline-block;padding:11px 28px;background:#0E1B4D;color:#fff;border-radius:999px;text-decoration:none;font-weight:800}\n@media(max-width:700px){.ej-cats{grid-template-columns:1fr}}\n@media(prefers-reduced-motion:reduce){.ej{animation:none}}\n</style>\n<div class=\"ej\">\n<div class=\"ej-hero\">\n<h2>🎄✨ Holiday Season ✨🎄</h2>\n<p>Cozy matching tees for toddlers, youth &amp; adults</p>\n<p class=\"ej-ship\">❄️ FREE SHIPPING OVER $35 • 10% OFF ESCARGOT ❄️</p>\n</div>\n<div class=\"ej-cats\">\n<a class=\"ej-kids\" href=\"/collections/holiday-season?filter.p.product_type=Kids+clothes&amp;sort_by=most-relevant\"><b>🧒 Kids Holiday</b><span>Toddler, Youth &amp; Baby →</span></a>\n<a class=\"ej-adult\" href=\"/collections/holiday-season?filter.p.product_type=T-Shirt&amp;sort_by=most-relevant\"><b>🧑 Adult Holiday</b><span>Unisex T-Shirts →</span></a>\n</div>\n<div class=\"ej-view\"><a href=\"/collections/holiday-season\">View All Holiday →</a></div>\n</div>"
     }
   ]
 }
