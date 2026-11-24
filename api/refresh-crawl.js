@@ -59,7 +59,6 @@ export default async function handler(req, res) {
       fetchAll(pagesQuery, "pages"),
     ]);
 
-    // normalize to Shelldon shape
     const products = rawProducts.map(p => ({
       id: p.id, title: p.title, handle: p.handle,
       description: useAdmin ? strip(p.descriptionHtml || "").slice(0,2000) : (p.description || "").slice(0,2000),
